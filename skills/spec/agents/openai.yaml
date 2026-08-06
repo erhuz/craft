@@ -1,0 +1,6 @@
+interface:
+  display_name: "Spec"
+  short_description: "Create and amend the project specification"
+  default_prompt: "Use $craft:spec to create or amend the repository-root SPEC.md."
+policy:
+  allow_implicit_invocation: false

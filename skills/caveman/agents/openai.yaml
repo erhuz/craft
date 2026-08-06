@@ -1,0 +1,7 @@
+interface:
+  display_name: "Caveman"
+  short_description: "Encode SPEC.md with compact precise syntax"
+  default_prompt: "Use $craft:caveman to compress this SPEC.md content without losing facts."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Backprop"
+  short_description: "Feed confirmed defects back into spec and build"
+  default_prompt: "Use $craft:backprop to trace this defect and propose the spec change before fixing it."
+policy:
+  allow_implicit_invocation: false

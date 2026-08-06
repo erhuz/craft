@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ponytail"
+  short_description: "Choose the smallest correct implementation"
+  default_prompt: "Use $craft:ponytail to find the smallest correct implementation."
+
+policy:
+  allow_implicit_invocation: false

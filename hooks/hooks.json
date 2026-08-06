@@ -1,0 +1,19 @@
+{
+  "description": "Load Craft's always-full Ponytail policy into each root session.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/session_start.py\"",
+            "timeout": 5,
+            "statusMessage": "Loading Craft...",
+            "additionalContextLimit": 3000
+          }
+        ]
+      }
+    ]
+  }
+}

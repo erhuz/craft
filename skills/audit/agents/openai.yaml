@@ -1,0 +1,6 @@
+interface:
+  display_name: "Audit"
+  short_description: "Challenge material feature and design decisions"
+  default_prompt: "Use $craft:audit to report only material decision-quality issues in this target."
+policy:
+  allow_implicit_invocation: false
