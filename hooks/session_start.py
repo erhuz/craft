@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Inject Craft's bundled Ponytail policy as Codex SessionStart context."""
+"""Inject Craft's bundled Ponytail policy as SessionStart context (Codex & Claude Code)."""
 
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 
@@ -19,7 +18,7 @@ def skill_body(text: str) -> str:
 
 def main() -> int:
     try:
-        root = Path(os.environ["PLUGIN_ROOT"])
+        root = Path(__file__).resolve().parents[1]
         body = skill_body((root / "skills/ponytail/SKILL.md").read_text())
         output = {
             "systemMessage": "CRAFT:PONYTAIL:FULL",

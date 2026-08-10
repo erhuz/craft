@@ -1,0 +1,9 @@
+{
+  "name": "craft",
+  "version": "0.1.0",
+  "description": "Audit decisions, specify behavior, build minimally, and feed defects back into the spec.",
+  "author": {
+    "name": "Benjamin Fransson"
+  },
+  "keywords": ["spec-driven-development", "audit", "minimalism", "backpropagation"]
+}

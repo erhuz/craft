@@ -1,0 +1,16 @@
+{
+  "name": "erhuz",
+  "owner": {
+    "name": "Benjamin Fransson"
+  },
+  "metadata": {
+    "description": "Personal marketplace for the Craft spec-driven workflow plugin"
+  },
+  "plugins": [
+    {
+      "name": "craft",
+      "source": "./",
+      "description": "Audit, specify, build, and learn from defects"
+    }
+  ]
+}
