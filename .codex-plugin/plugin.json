@@ -1,11 +1,16 @@
 {
   "name": "craft",
-  "version": "0.1.0",
+  "version": "0.1.0+codex.20260810125801",
   "description": "Audit decisions, specify behavior, build minimally, and feed defects back into the spec.",
   "author": {
     "name": "Benjamin Fransson"
   },
-  "keywords": ["spec-driven-development", "audit", "minimalism", "backpropagation"],
+  "keywords": [
+    "spec-driven-development",
+    "audit",
+    "minimalism",
+    "backpropagation"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Craft",
@@ -13,7 +18,10 @@
     "longDescription": "A personal spec-driven workflow combining decision audits, minimal implementation, compact specifications, and defect backpropagation.",
     "developerName": "Benjamin Fransson",
     "category": "Productivity",
-    "capabilities": ["Instructions", "Write"],
+    "capabilities": [
+      "Instructions",
+      "Write"
+    ],
     "defaultPrompt": [
       "Use $craft:audit to challenge this feature.",
       "Use $craft:spec to turn this idea into SPEC.md.",
