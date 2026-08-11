@@ -18,9 +18,13 @@ skill.
 
 1. Resolve the current Git root. If none exists, use the current directory.
 2. Use only `<root>/SPEC.md`; never borrow a parent or sibling ledger.
-3. Read `<root>/FORMAT.md` when present. It overrides the bundled Caveman
-   defaults where the two conflict.
-4. Apply the compact SPEC encoding in `../caveman/SKILL.md` to every SPEC write.
+3. Load exactly one format contract before inspecting or writing `SPEC.md`:
+   read all of `<root>/FORMAT.md` when it exists; otherwise read all of
+   `../caveman/SKILL.md` and use its SPEC format.
+4. If the selected format contract is missing or unreadable, return
+   `FORMAT_MISSING` and stop: no further repository inspection, SPEC write, or
+   substitution from generic tools, model defaults, remembered syntax, or
+   parent or sibling format files.
 5. Read relevant local instructions before inspecting or changing files.
 
 ## Dispatch
@@ -91,4 +95,5 @@ and return the allocated IDs to Backprop. Do not edit code or commit.
   commit.
 - No sub-agents, dashboards, auxiliary state, or speculative scaffolding.
 - Preserve exact paths, identifiers, commands, and code tokens.
-- A clean result is a focused diff or `SPEC_MISSING`; never silently no-op.
+- A clean result is a focused diff, `SPEC_MISSING`, or `FORMAT_MISSING`; never
+  silently no-op.
