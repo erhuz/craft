@@ -1,0 +1,6 @@
+interface:
+  display_name: "Plan"
+  short_description: "Turn rough ideas into implementation-ready plans"
+  default_prompt: "Use $craft:plan to expand this idea into a researched, decision-ready implementation plan."
+policy:
+  allow_implicit_invocation: false

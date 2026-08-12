@@ -22,13 +22,23 @@ class SpecBuildGateTest(unittest.TestCase):
                 "cwd": data_directory,
             }
             with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                spec = spec_build_gate.handle(
-                    {**event, "prompt": "$craft:spec amend V1"}
+                plan = spec_build_gate.handle(
+                    {**event, "prompt": "$craft:plan explore order imports"}
                 )
-                self.assertIn("SPEC-ONLY", str(spec))
+                self.assertIn("$craft:plan is read-only", str(plan))
 
                 blocked = spec_build_gate.handle(
                     {**event, "prompt": "Implement plan"}
+                )
+                self.assertEqual(blocked["decision"], "block")
+
+                spec = spec_build_gate.handle(
+                    {**event, "prompt": "$craft:spec amend V1"}
+                )
+                self.assertIn("$craft:spec may edit SPEC.md only", str(spec))
+
+                blocked = spec_build_gate.handle(
+                    {**event, "prompt": "Implement the plan"}
                 )
                 self.assertEqual(blocked["decision"], "block")
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require an explicit Craft phase after a Spec-only Plan turn."""
+"""Require explicit Craft Build after a Plan or Spec turn."""
 
 from __future__ import annotations
 
@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import Any
 
 
-SPEC_INVOCATION = re.compile(r"(?:^|\s)\$craft:spec(?=\s|$)", re.IGNORECASE)
+PRE_BUILD_INVOCATION = re.compile(
+    r"(?:^|\s)\$craft:(?:plan|spec)(?=\s|$)", re.IGNORECASE
+)
 IMPLEMENTATION_INVOCATION = re.compile(
     r"(?:^|\s)\$craft:(?:build|full-loop)(?=\s|$)", re.IGNORECASE
 )
@@ -49,7 +51,7 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
     if not isinstance(prompt, str):
         return None
 
-    if SPEC_INVOCATION.search(prompt):
+    if PRE_BUILD_INVOCATION.search(prompt):
         if path is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.touch()
@@ -57,8 +59,9 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             "hookSpecificOutput": {
                 "hookEventName": "UserPromptSubmit",
                 "additionalContext": (
-                    "CRAFT SPEC-ONLY GATE ACTIVE. End this turn after the SPEC.md "
-                    "diff. Do not continue into Build."
+                    "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
+                    "$craft:spec may edit SPEC.md only. Neither authorizes or "
+                    "continues into Build."
                 ),
             }
         }
@@ -75,10 +78,10 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
         return {
             "decision": "block",
             "reason": (
-                "Craft Spec is spec-only; 'Implement plan' is not Build approval. "
-                "Switch out of Plan mode and invoke $craft:spec again to apply only "
-                "the planned SPEC.md change, or explicitly invoke $craft:build "
-                "or $craft:full-loop to implement code."
+                "Craft Plan and Spec do not authorize implementation; 'Implement "
+                "plan' is not Build approval. Invoke $craft:plan to continue "
+                "discovery, $craft:spec to encode the accepted brief, or explicitly "
+                "invoke $craft:build or $craft:full-loop to implement code."
             ),
         }
     return None

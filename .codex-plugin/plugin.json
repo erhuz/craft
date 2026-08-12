@@ -1,12 +1,13 @@
 {
   "name": "craft",
-  "version": "0.1.0+codex.20260812125730",
-  "description": "Specify behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
+  "version": "0.1.0+codex.20260812132321",
+  "description": "Plan concepts, specify behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
   "author": {
     "name": "Benjamin Fransson"
   },
   "keywords": [
     "spec-driven-development",
+    "feature-planning",
     "critique",
     "audit",
     "drift-detection",
@@ -17,8 +18,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Craft",
-    "shortDescription": "Specify, build, critique, audit, and learn",
-    "longDescription": "A personal spec-driven workflow combining compact specifications, minimal implementation, adversarial read-only critique, conservative decision audits, drift detection, a gated build-audit-check loop, and defect backpropagation.",
+    "shortDescription": "Plan, specify, build, critique, audit, and learn",
+    "longDescription": "A personal workflow combining research-led concept planning, compact specifications, minimal implementation, adversarial read-only critique, conservative decision audits, drift detection, a gated build-audit-check loop, and defect backpropagation.",
     "developerName": "Benjamin Fransson",
     "category": "Productivity",
     "capabilities": [
@@ -26,6 +27,7 @@
       "Write"
     ],
     "defaultPrompt": [
+      "Use $craft:plan to turn this rough idea into a researched, decision-ready implementation plan.",
       "Use $craft:spec to turn this idea into SPEC.md.",
       "Use $craft:build --next to complete the next task.",
       "Use $craft:full-loop --next --loop to build, review, and finish the next task."

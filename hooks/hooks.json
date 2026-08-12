@@ -1,5 +1,5 @@
 {
-  "description": "Load Craft's always-full Ponytail policy into each root session.",
+  "description": "Load Craft's Ponytail policy and guard explicit Plan, Spec, and Build phases.",
   "hooks": {
     "SessionStart": [
       {
