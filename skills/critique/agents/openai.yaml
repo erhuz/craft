@@ -1,0 +1,6 @@
+interface:
+  display_name: "Critique"
+  short_description: "Find bugs, weak assumptions, and suspicious slop"
+  default_prompt: "Use $craft:critique to explore this target for bugs, weak assumptions, and suspicious slop."
+policy:
+  allow_implicit_invocation: false

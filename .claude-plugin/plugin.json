@@ -1,9 +1,9 @@
 {
   "name": "craft",
   "version": "0.1.0",
-  "description": "Specify behavior, build minimally, audit decisions, check drift, and close tasks through a gated review loop.",
+  "description": "Specify behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
   "author": {
     "name": "Benjamin Fransson"
   },
-  "keywords": ["spec-driven-development", "audit", "drift-detection", "quality-loop", "minimalism", "backpropagation"]
+  "keywords": ["spec-driven-development", "critique", "audit", "drift-detection", "quality-loop", "minimalism", "backpropagation"]
 }
