@@ -36,7 +36,7 @@ T2|x|Resolve prompt-transition option; align router/default prompts & cover affi
 T3|x|Fail closed on `UserPromptSubmit` phase-state errors & cover unavailable/invalid plugin data|V3,I.prompt-hook,I.phase-state
 T4|x|Repair Spec→Backprop delegation contract & add contract proof preserving explicit phase authority|V4,I.phase-authority
 T5|x|Unify Build/Full Loop `--next` precedence & add table-driven selector proof|V5,I.task-selector
-T6|.|Probe dirty same-path baseline in disposable Git fixture; enforce overlap stop or exact hunk isolation|V6,I.git-ownership
+T6|x|Probe dirty same-path baseline in disposable Git fixture; enforce overlap stop or exact hunk isolation|V6,I.git-ownership
 
 §B
 id|date|cause|fix

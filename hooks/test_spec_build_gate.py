@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -220,6 +221,50 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_build_stops_before_dirty_same_path_staging(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as data_directory:
+            repository = Path(data_directory)
+
+            def git(*arguments: str) -> str:
+                return subprocess.run(
+                    ("git", *arguments),
+                    cwd=repository,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout
+
+            git("init", "--quiet")
+            git("config", "user.name", "Craft Test")
+            git("config", "user.email", "craft@example.invalid")
+            shared = repository / "shared.txt"
+            shared.write_text("original-user\nstable\noriginal-task\n")
+            git("add", "--", "shared.txt")
+            git("commit", "--quiet", "-m", "baseline")
+
+            shared.write_text("user-owned\nstable\noriginal-task\n")
+            self.assertEqual(
+                git("status", "--short", "--", "shared.txt"),
+                " M shared.txt\n",
+            )
+            shared.write_text("user-owned\nstable\ntask-owned\n")
+            git("add", "--", "shared.txt")
+            staged = git("diff", "--cached", "--unified=0", "--", "shared.txt")
+            self.assertIn("+user-owned", staged)
+            self.assertIn("+task-owned", staged)
+
+        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        gate = skill.partition("## Git ownership gate")[2].partition("\n## ")[0]
+        normalized = " ".join(gate.split())
+        self.assertIn(
+            "If any intended path has pre-existing staged, unstaged, or "
+            "untracked content not provably owned by this task, return "
+            "`TASK_PATH_OVERLAP` and stop before mutation.",
+            normalized,
+        )
+        self.assertIn("Separate hunks do not make a shared path safe.", normalized)
+
     def test_build_and_full_loop_share_next_task_precedence(self) -> None:
         root = Path(__file__).resolve().parents[1]
         cases = (

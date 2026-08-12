@@ -54,6 +54,18 @@ The explicit Build invocation, or a task delegated by an explicit Full Loop
 invocation, authorizes this scoped plan. Pause only for a new product decision,
 external side effect, missing permission, or meaningful scope expansion.
 
+## Git ownership gate
+
+After planning expected paths and before any mutation:
+
+1. Record baseline `HEAD` and exact index/worktree state.
+2. Treat `SPEC.md` plus every expected task file as intended task paths.
+3. If any intended path has pre-existing staged, unstaged, or untracked content
+   not provably owned by this task, return `TASK_PATH_OVERLAP` and stop before
+   mutation. Separate hunks do not make a shared path safe.
+4. Permit unrelated dirty paths only when their baseline worktree bytes and
+   index entries can be verified unchanged after the task commit.
+
 ## Execute
 
 For each selected task:
@@ -69,7 +81,8 @@ For each selected task:
    baseline index, run staged whitespace/name checks for those paths, and commit
    exactly those task paths immediately. If unrelated changes were already
    staged, use a path-limited commit and verify their index entries remain
-   unchanged.
+   unchanged. Verify all unrelated baseline worktree bytes and index entries
+   remain unchanged after commit.
 
 Feature commit: `T<n>: <goal>` with relevant `V<n>` references in the body when
 useful. A Backprop fix commits spec, test, and code together as
@@ -123,7 +136,7 @@ Mark and commit a task complete only when:
 - required repository-wide gates for this task pass;
 - applicable invariants remain true;
 - the task commit contains only intended files;
-- unrelated worktree changes remain untouched.
+- unrelated baseline worktree bytes and index entries remain unchanged.
 
 When delegated by Full Loop, also require unchanged `BUILD_READY` evidence and
 exact clean Audit and Check results supplied by that coordinator.
