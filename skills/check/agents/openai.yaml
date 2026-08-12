@@ -1,0 +1,6 @@
+interface:
+  display_name: "Check"
+  short_description: "Detect drift between SPEC.md and current code"
+  default_prompt: "Use $craft:check to reconcile all SPEC.md invariants, interfaces, and tasks with current code."
+policy:
+  allow_implicit_invocation: false
