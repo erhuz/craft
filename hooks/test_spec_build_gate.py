@@ -140,6 +140,54 @@ class CraftPromptRouterTest(unittest.TestCase):
                         else:
                             self.assertEqual(output["decision"], "block")
 
+    def test_phase_state_failures_block_only_stateful_prompts(self) -> None:
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-state-failure",
+            "turn_id": "turn-state-failure",
+            "cwd": "/tmp",
+        }
+
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertIsNone(
+                spec_build_gate.handle({**event, "prompt": "Explain the plan"})
+            )
+            unavailable = spec_build_gate.handle(
+                {**event, "prompt": "$craft:spec amend V3"}
+            )
+        self.assertEqual(unavailable["decision"], "block")
+
+        with tempfile.TemporaryDirectory() as data_directory:
+            invalid_root = Path(data_directory) / "plugin-data"
+            invalid_root.touch()
+            with patch.dict(os.environ, {"PLUGIN_DATA": str(invalid_root)}):
+                invalid = spec_build_gate.handle(
+                    {**event, "prompt": "Implement plan"}
+                )
+            self.assertEqual(invalid["decision"], "block")
+
+            failures = (
+                ("stat", "Implement plan"),
+                ("touch", "$craft:spec amend V3"),
+                ("unlink", "$craft:build --next"),
+            )
+            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
+                for operation, prompt in failures:
+                    with self.subTest(operation=operation):
+                        with patch.object(
+                            Path,
+                            operation,
+                            side_effect=PermissionError("denied"),
+                        ):
+                            output = spec_build_gate.handle(
+                                {**event, "prompt": prompt}
+                            )
+                        self.assertEqual(output["decision"], "block")
+                        self.assertEqual(
+                            output["reason"],
+                            spec_build_gate.PHASE_STATE_FAILURE_REASON,
+                        )
+
     def test_implementation_defaults_are_canonical_invocations(self) -> None:
         root = Path(__file__).resolve().parents[1]
         agent_defaults = []

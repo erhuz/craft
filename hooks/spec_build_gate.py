@@ -26,6 +26,9 @@ IMPLEMENTATION_INVOCATION = re.compile(
 )
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
+PHASE_STATE_FAILURE_REASON = (
+    "Craft phase state is unavailable; Build authorization cannot be verified."
+)
 
 
 def _skill_summary(skill: Path) -> str:
@@ -89,14 +92,21 @@ def _remove(path: Path | None) -> None:
         path.unlink(missing_ok=True)
 
 
+def _state_exists(path: Path) -> bool:
+    try:
+        path.stat()
+    except FileNotFoundError:
+        return False
+    return True
+
+
 def _normalized(prompt: str) -> str:
     return " ".join(prompt.casefold().strip().rstrip(".!?").split())
 
 
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
-    path = _state_path(event)
     if event.get("hook_event_name") == "SessionEnd":
-        _remove(path)
+        _remove(_state_path(event))
         return None
     if event.get("hook_event_name") != "UserPromptSubmit":
         return None
@@ -118,38 +128,49 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             }
         }
 
-    if PRE_BUILD_INVOCATION.search(prompt):
-        if path is not None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.touch()
-        return {
-            "hookSpecificOutput": {
-                "hookEventName": "UserPromptSubmit",
-                "additionalContext": (
-                    "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
-                    "$craft:spec may edit SPEC.md only. Neither authorizes or "
-                    "continues into Build."
-                ),
-            }
-        }
-
-    if IMPLEMENTATION_INVOCATION.fullmatch(prompt):
-        _remove(path)
+    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None
+    implementation = IMPLEMENTATION_INVOCATION.fullmatch(prompt) is not None
+    implement_plan = _normalized(prompt) in IMPLEMENT_PLAN_PROMPTS
+    if not (pre_build or implementation or implement_plan):
         return None
 
-    if (
-        _normalized(prompt) in IMPLEMENT_PLAN_PROMPTS
-        and path is not None
-        and path.exists()
-    ):
+    try:
+        path = _state_path(event)
+        if path is None:
+            raise RuntimeError("phase-state path is unavailable")
+
+        if pre_build:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch()
+            return {
+                "hookSpecificOutput": {
+                    "hookEventName": "UserPromptSubmit",
+                    "additionalContext": (
+                        "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
+                        "$craft:spec may edit SPEC.md only. Neither authorizes or "
+                        "continues into Build."
+                    ),
+                }
+            }
+
+        if implementation:
+            _remove(path)
+            return None
+
+        if implement_plan and _state_exists(path):
+            return {
+                "decision": "block",
+                "reason": (
+                    "Craft Plan and Spec do not authorize implementation; 'Implement "
+                    "plan' is not Build approval. Invoke $craft:plan to continue "
+                    "discovery, $craft:spec to encode the accepted brief, or explicitly "
+                    "invoke $craft:build or $craft:full-loop to implement code."
+                ),
+            }
+    except Exception:
         return {
             "decision": "block",
-            "reason": (
-                "Craft Plan and Spec do not authorize implementation; 'Implement "
-                "plan' is not Build approval. Invoke $craft:plan to continue "
-                "discovery, $craft:spec to encode the accepted brief, or explicitly "
-                "invoke $craft:build or $craft:full-loop to implement code."
-            ),
+            "reason": PHASE_STATE_FAILURE_REASON,
         }
     return None
 
