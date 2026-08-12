@@ -106,5 +106,25 @@ class CraftPromptRouterTest(unittest.TestCase):
                 self.assertIsNone(allowed)
 
 
+class CraftSkillPolicyTest(unittest.TestCase):
+    def test_explicit_only_skills_disable_implicit_invocation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        explicit_only = [
+            skill
+            for skill in sorted((root / "skills").glob("*/SKILL.md"))
+            if "explicitly invoked" in skill.read_text().split("---", 2)[1]
+        ]
+
+        self.assertTrue(explicit_only)
+        for skill in explicit_only:
+            with self.subTest(skill=skill.parent.name):
+                metadata = skill.parent / "agents" / "openai.yaml"
+                self.assertTrue(metadata.is_file())
+                self.assertIn(
+                    "policy:\n  allow_implicit_invocation: false",
+                    metadata.read_text(),
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

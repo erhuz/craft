@@ -2,3 +2,5 @@ interface:
   display_name: "Full Loop"
   short_description: "Build, audit, and check spec tasks to completion"
   default_prompt: "Use $craft:full-loop --next --loop to build, audit, check, and finalize the next SPEC.md task."
+policy:
+  allow_implicit_invocation: false
