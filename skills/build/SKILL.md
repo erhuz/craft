@@ -25,11 +25,16 @@ own semantic spec content.
 ## Select
 
 - `<task-id>`: select that task only.
-- `--next` or no argument: select the lowest-numbered open task (`.` first,
-  then an already-started `~` task that belongs to this worktree).
+- No argument: treat as `--next`.
+- `--next`, in order:
+  1. If exactly one `~` task is provably owned by this worktree, resume it
+     before any `.` task.
+  2. If multiple `~` tasks exist or any `~` task's ownership is ambiguous,
+     stop before mutation.
+  3. Otherwise, select the lowest-numbered `.` task.
+  4. If no `.` or `~` task exists, strict no-op. Report it and stop.
 - `--all`: process open tasks in order, committing each verified task before
   starting the next.
-- No open task: strict no-op; report it and stop.
 
 Do not begin a new task while known current-task changes remain unstaged or
 uncommitted. Reconcile that slice first.

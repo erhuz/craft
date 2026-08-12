@@ -220,6 +220,34 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_build_and_full_loop_share_next_task_precedence(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        cases = (
+            (
+                "owned_resumable",
+                "If exactly one `~` task is provably owned by this worktree, "
+                "resume it before any `.` task.",
+            ),
+            (
+                "ambiguous_resumable",
+                "If multiple `~` tasks exist or any `~` task's ownership is "
+                "ambiguous, stop before mutation.",
+            ),
+            ("new_task", "Otherwise, select the lowest-numbered `.` task."),
+            ("closed", "If no `.` or `~` task exists, strict no-op."),
+        )
+
+        for skill_name in ("build", "full-loop"):
+            skill = (root / "skills" / skill_name / "SKILL.md").read_text()
+            selection = skill.partition("## Select")[2].partition("\n## ")[0]
+            normalized = " ".join(selection.split())
+            positions = []
+            for case, expected in cases:
+                with self.subTest(skill=skill_name, case=case):
+                    self.assertIn(expected, normalized)
+                    positions.append(normalized.index(expected))
+            self.assertEqual(positions, sorted(positions))
+
     def test_spec_raw_defects_preserve_explicit_phase_authority(self) -> None:
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "spec" / "SKILL.md").read_text()

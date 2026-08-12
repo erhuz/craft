@@ -40,13 +40,17 @@ actions, or other external side effects.
 
 ## Select tasks
 
-- `--next`: select the lowest-numbered `.` task, or an already-started `~` task
-  owned by this worktree when no `.` task is available.
+- `--next`, in order:
+  1. If exactly one `~` task is provably owned by this worktree, resume it
+     before any `.` task.
+  2. If multiple `~` tasks exist or any `~` task's ownership is ambiguous,
+     stop before mutation.
+  3. Otherwise, select the lowest-numbered `.` task.
+  4. If no `.` or `~` task exists, strict no-op. Return `NO_OPEN_TASKS`.
 - Explicit IDs: before any mutation, require every ID to exist and have `.` or
   `~` status. Process the unique tasks in ledger order, not argument order.
 - `--all`: snapshot the initially open `.` and resumable `~` tasks in ledger
   order. Tasks added later are outside this invocation.
-- No selected open task: strict no-op; return `NO_OPEN_TASKS`.
 
 Do not start a new task while a prior selected task has uncommitted changes.
 Stop before mutation when pre-existing changes overlap a selected task or make
