@@ -220,6 +220,19 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_spec_raw_defects_preserve_explicit_phase_authority(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "spec" / "SKILL.md").read_text()
+        dispatch = skill.partition("## Dispatch")[2].partition("## Create")[0]
+        normalized = " ".join(dispatch.split())
+
+        self.assertIn(
+            "Raw bug or failed verification supplied: recommend an explicit "
+            "`$craft:backprop` invocation; do not invoke Backprop or Build",
+            normalized,
+        )
+        self.assertNotIn("supplied: invoke `$craft:backprop`", normalized)
+
     def test_explicit_only_skills_disable_implicit_invocation(self) -> None:
         root = Path(__file__).resolve().parents[1]
         explicit_only = [

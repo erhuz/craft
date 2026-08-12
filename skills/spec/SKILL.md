@@ -34,7 +34,8 @@ skill.
 - Existing `SPEC.md`, `amend <section>` supplied: amend only that section and
   direct dependencies required to keep references valid.
 - Confirmed Backprop change set supplied: apply it exactly, allocating final IDs.
-- Raw bug or failed verification supplied: invoke `$craft:backprop`; do not turn
+- Raw bug or failed verification supplied: recommend an explicit
+  `$craft:backprop` invocation; do not invoke Backprop or Build, and do not turn
   an untraced symptom directly into an invariant.
 - Missing or ambiguous input: ask one focused question and write nothing.
 
