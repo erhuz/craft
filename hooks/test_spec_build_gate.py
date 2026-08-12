@@ -105,6 +105,71 @@ class CraftPromptRouterTest(unittest.TestCase):
                 )
                 self.assertIsNone(allowed)
 
+    def test_only_canonical_implementation_invocations_unlock(self) -> None:
+        prompts = (
+            ("$craft:build", True),
+            ("$craft:build --all", True),
+            ("$craft:build T2", True),
+            ("$craft:full-loop", True),
+            ("$craft:full-loop T2 T3 --loop --max 2", True),
+            ('"$craft:build --next"', False),
+            ("Use $craft:build --next to implement the next task.", False),
+            ("Do not run $craft:full-loop --next --loop.", False),
+        )
+
+        with tempfile.TemporaryDirectory() as data_directory:
+            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
+                for index, (prompt, authorized) in enumerate(prompts):
+                    with self.subTest(prompt=prompt):
+                        event = {
+                            "hook_event_name": "UserPromptSubmit",
+                            "session_id": f"session-{index}",
+                            "turn_id": f"turn-{index}",
+                            "cwd": data_directory,
+                        }
+                        spec_build_gate.handle(
+                            {**event, "prompt": "$craft:spec amend V2"}
+                        )
+                        spec_build_gate.handle({**event, "prompt": prompt})
+                        output = spec_build_gate.handle(
+                            {**event, "prompt": "Implement plan"}
+                        )
+
+                        if authorized:
+                            self.assertIsNone(output)
+                        else:
+                            self.assertEqual(output["decision"], "block")
+
+    def test_implementation_defaults_are_canonical_invocations(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        agent_defaults = []
+        for name in ("build", "full-loop"):
+            metadata = (
+                root / "skills" / name / "agents" / "openai.yaml"
+            ).read_text()
+            raw = next(
+                line.split(":", 1)[1].strip()
+                for line in metadata.splitlines()
+                if line.strip().startswith("default_prompt:")
+            )
+            agent_defaults.append(json.loads(raw))
+
+        plugin_defaults = json.loads(
+            (root / ".codex-plugin" / "plugin.json").read_text()
+        )["interface"]["defaultPrompt"]
+        implementation_defaults = [
+            prompt
+            for prompt in plugin_defaults
+            if "$craft:build" in prompt or "$craft:full-loop" in prompt
+        ]
+
+        self.assertCountEqual(agent_defaults, implementation_defaults)
+        for prompt in implementation_defaults:
+            with self.subTest(prompt=prompt):
+                self.assertIsNotNone(
+                    spec_build_gate.IMPLEMENTATION_INVOCATION.fullmatch(prompt)
+                )
+
 
 class CraftSkillPolicyTest(unittest.TestCase):
     def test_explicit_only_skills_disable_implicit_invocation(self) -> None:

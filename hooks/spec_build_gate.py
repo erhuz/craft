@@ -15,8 +15,14 @@ from typing import Any
 PRE_BUILD_INVOCATION = re.compile(
     r"(?:^|\s)\$craft:(?:plan|spec)(?=\s|$)", re.IGNORECASE
 )
+# ponytail: replace prompt grammar when both hosts expose a structured action ID.
 IMPLEMENTATION_INVOCATION = re.compile(
-    r"(?:^|\s)\$craft:(?:build|full-loop)(?=\s|$)", re.IGNORECASE
+    r"\s*\$craft:(?:"
+    r"build(?:\s+(?:--next|--all|T[1-9]\d*))?"
+    r"|full-loop"
+    r"(?:\s+(?:--next|--all|T[1-9]\d*(?:\s+T[1-9]\d*)*))?"
+    r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
+    r")\s*"
 )
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
@@ -127,7 +133,7 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             }
         }
 
-    if IMPLEMENTATION_INVOCATION.search(prompt):
+    if IMPLEMENTATION_INVOCATION.fullmatch(prompt):
         _remove(path)
         return None
 
