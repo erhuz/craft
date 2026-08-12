@@ -1,6 +1,6 @@
 {
   "name": "craft",
-  "version": "0.1.0+codex.20260812132321",
+  "version": "0.1.0+codex.20260812135311",
   "description": "Plan concepts, specify behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
   "author": {
     "name": "Benjamin Fransson"
@@ -27,6 +27,7 @@
       "Write"
     ],
     "defaultPrompt": [
+      "$craft",
       "Use $craft:plan to turn this rough idea into a researched, decision-ready implementation plan.",
       "Use $craft:spec to turn this idea into SPEC.md.",
       "Use $craft:build --next to complete the next task.",

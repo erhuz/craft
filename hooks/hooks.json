@@ -1,5 +1,5 @@
 {
-  "description": "Load Craft's Ponytail policy and guard explicit Plan, Spec, and Build phases.",
+  "description": "Load Ponytail, render Craft's catalog, and guard explicit Plan, Spec, and Build phases.",
   "hooks": {
     "SessionStart": [
       {
@@ -33,8 +33,8 @@
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/spec_build_gate.py\"",
             "timeout": 5,
-            "statusMessage": "Checking Craft phase...",
-            "additionalContextLimit": 500
+            "statusMessage": "Routing Craft prompt...",
+            "additionalContextLimit": 0
           }
         ]
       }

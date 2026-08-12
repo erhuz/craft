@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require explicit Craft Build after a Plan or Spec turn."""
+"""Render Craft's catalog and require explicit Build after Plan or Spec."""
 
 from __future__ import annotations
 
@@ -19,6 +19,54 @@ IMPLEMENTATION_INVOCATION = re.compile(
     r"(?:^|\s)\$craft:(?:build|full-loop)(?=\s|$)", re.IGNORECASE
 )
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
+CRAFT_DEFAULT_PROMPT = "$craft"
+
+
+def _skill_summary(skill: Path) -> str:
+    metadata = skill.parent / "agents" / "openai.yaml"
+    if metadata.is_file():
+        match = re.search(
+            r'^\s*short_description:\s*(.+?)\s*$',
+            metadata.read_text(),
+            re.MULTILINE,
+        )
+        if match:
+            raw = match.group(1)
+            try:
+                value = json.loads(raw)
+            except json.JSONDecodeError:
+                value = raw.strip("'\"")
+            if isinstance(value, str) and value:
+                return value
+
+    body = skill.read_text().split("---", 2)[-1]
+    paragraph: list[str] = []
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            if paragraph:
+                break
+            continue
+        paragraph.append(stripped)
+    return " ".join(paragraph) or "No summary provided"
+
+
+def render_catalog(root: Path) -> str:
+    lines = ["# Craft", "", "## Skills", ""]
+    for skill in sorted((root / "skills").glob("*/SKILL.md")):
+        name = skill.parent.name
+        lines.append(f"- `$craft:{name}` — {_skill_summary(skill)}")
+
+    lines.extend(["", "## Hooks", ""])
+    config = json.loads((root / "hooks" / "hooks.json").read_text())
+    for event, groups in config.get("hooks", {}).items():
+        for group in groups:
+            for hook in group.get("hooks", []):
+                command = hook.get("command", "")
+                scripts = re.findall(r"([^/\" ]+\.py)", command)
+                handler = scripts[-1] if scripts else command
+                lines.append(f"- `{event}` → `{handler}`")
+    return "\n".join(lines)
 
 
 def _state_path(event: dict[str, Any]) -> Path | None:
@@ -50,6 +98,19 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
     prompt = event.get("prompt")
     if not isinstance(prompt, str):
         return None
+
+    if prompt.strip() == CRAFT_DEFAULT_PROMPT:
+        catalog = render_catalog(Path(__file__).resolve().parents[1])
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "UserPromptSubmit",
+                "additionalContext": (
+                    "CRAFT DEFAULT ACTION. Reply with the Markdown catalog below "
+                    "verbatim and nothing else. Do not call tools or invoke a skill.\n\n"
+                    f"{catalog}"
+                ),
+            }
+        }
 
     if PRE_BUILD_INVOCATION.search(prompt):
         if path is not None:
@@ -93,7 +154,7 @@ def main() -> int:
     except Exception as error:
         output = {
             "systemMessage": (
-                f"Craft spec/build gate failed: {type(error).__name__}: {error}"
+                f"Craft prompt router failed: {type(error).__name__}: {error}"
             )
         }
     if output is not None:

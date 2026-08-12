@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 import tempfile
@@ -12,7 +13,52 @@ sys.path.insert(0, str(Path(__file__).parent))
 import spec_build_gate
 
 
-class SpecBuildGateTest(unittest.TestCase):
+class CraftPromptRouterTest(unittest.TestCase):
+    def test_exact_craft_prompt_lists_every_skill_then_hooks(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-catalog",
+            "turn_id": "turn-catalog",
+            "cwd": str(root),
+        }
+
+        output = spec_build_gate.handle({**event, "prompt": "  $craft\n"})
+        context = output["hookSpecificOutput"]["additionalContext"]
+        catalog = context.split("\n\n", 1)[1]
+
+        for skill in sorted((root / "skills").glob("*/SKILL.md")):
+            self.assertIn(f"`$craft:{skill.parent.name}` — ", catalog)
+
+        hooks = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"]
+        for event_name, groups in hooks.items():
+            for group in groups:
+                for hook in group["hooks"]:
+                    handler = Path(hook["command"].rsplit("/", 1)[-1].strip('"')).name
+                    self.assertIn(f"`{event_name}` → `{handler}`", catalog)
+
+        self.assertLess(catalog.index("## Skills"), catalog.index("## Hooks"))
+
+    def test_craft_catalog_requires_the_bare_invocation(self) -> None:
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-catalog",
+            "turn_id": "turn-catalog",
+            "cwd": "/tmp",
+        }
+        prompts = (
+            "$CRAFT",
+            "$craft --help",
+            "$craft:plan",
+            "show $craft",
+            "$craft\nanything",
+            "$craft.",
+        )
+        for prompt in prompts:
+            with self.subTest(prompt=prompt):
+                output = spec_build_gate.handle({**event, "prompt": prompt})
+                self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
+
     def test_implement_plan_requires_an_explicit_craft_phase(self) -> None:
         with tempfile.TemporaryDirectory() as data_directory:
             event = {
