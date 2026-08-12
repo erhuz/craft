@@ -38,6 +38,17 @@ class SpecBuildGateTest(unittest.TestCase):
                 )
                 self.assertIsNone(allowed)
 
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:spec amend V2"}
+                )
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:full-loop --next --loop"}
+                )
+                allowed = spec_build_gate.handle(
+                    {**event, "prompt": "Implement the plan"}
+                )
+                self.assertIsNone(allowed)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,7 +13,9 @@ from typing import Any
 
 
 SPEC_INVOCATION = re.compile(r"(?:^|\s)\$craft:spec(?=\s|$)", re.IGNORECASE)
-BUILD_INVOCATION = re.compile(r"(?:^|\s)\$craft:build(?=\s|$)", re.IGNORECASE)
+IMPLEMENTATION_INVOCATION = re.compile(
+    r"(?:^|\s)\$craft:(?:build|full-loop)(?=\s|$)", re.IGNORECASE
+)
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 
 
@@ -61,7 +63,7 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             }
         }
 
-    if BUILD_INVOCATION.search(prompt):
+    if IMPLEMENTATION_INVOCATION.search(prompt):
         _remove(path)
         return None
 
@@ -75,8 +77,8 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             "reason": (
                 "Craft Spec is spec-only; 'Implement plan' is not Build approval. "
                 "Switch out of Plan mode and invoke $craft:spec again to apply only "
-                "the planned SPEC.md change, or explicitly invoke $craft:build to "
-                "implement code."
+                "the planned SPEC.md change, or explicitly invoke $craft:build "
+                "or $craft:full-loop to implement code."
             ),
         }
     return None

@@ -3,11 +3,12 @@ name: audit
 description: >
   Audit decision-bearing artifacts such as proposals, specifications, system
   and UI designs, diffs, implementations, skills, workflows, and configuration.
-  Use only when explicitly invoked as $craft:audit. Report only material
-  decision-quality issues: unsupported value, invented product truth,
-  unjustified complexity, broken logic, state mismatch, false completeness,
-  missing failure behavior, and evidence gaps. Remain read-only; do not praise,
-  summarize, redesign, fix, or advance into Spec unless explicitly requested.
+  Use when explicitly invoked as $craft:audit or delegated by $craft:full-loop.
+  Report only material decision-quality issues: unsupported value, invented
+  product truth, unjustified complexity, broken logic, state mismatch, false
+  completeness, missing failure behavior, and evidence gaps. Remain read-only;
+  do not praise, summarize, redesign, fix, or advance into Spec unless
+  explicitly requested.
 ---
 
 # Audit
@@ -163,3 +164,13 @@ accepts or resolves issues, they may explicitly invoke `$craft:spec`.
 If no supported material issue or required evidence gap exists, output only:
 
 `No material issues found.`
+
+## Full Loop delegation
+
+When delegated by Full Loop, inspect only the selected task row, its cited
+contracts, the baseline and exact task-owned `BUILD_READY` diff, and its
+verification evidence. Do not widen into unrelated ledger items or paths.
+
+Full Loop's delegated request explicitly asks for solutions, so add exactly one
+minimal `Remedy:` to each issue. Remain read-only and preserve the exact clean
+sentinel above.

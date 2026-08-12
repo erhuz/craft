@@ -10,7 +10,7 @@
     {
       "name": "craft",
       "source": "./",
-      "description": "Audit, specify, build, detect drift, and learn"
+      "description": "Specify, build, audit, check drift, and learn"
     }
   ]
 }

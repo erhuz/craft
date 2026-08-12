@@ -1,10 +1,10 @@
 ---
 name: check
 description: >
-  Reconcile the repository-root SPEC.md with current code read-only. Use only
-  when explicitly invoked as $craft:check to check all ledger sections, narrow
-  the scan to §V, §I, or §T, audit invariant/interface/task drift, or verify
-  whether code still matches the spec. Report evidence and remedy hints; never
+  Reconcile the repository-root SPEC.md with current code read-only. Use when
+  explicitly invoked as $craft:check or delegated by $craft:full-loop to check
+  all ledger sections, narrow the scan to §V, §I, or §T, or verify one or more
+  task IDs and their cited contracts. Report evidence and remedy hints; never
   write or invoke another Craft phase.
 ---
 
@@ -18,8 +18,10 @@ decide whether code or specification must change.
 1. Parse the invocation before repository inspection:
    - no argument or `--all`: check `§V`, `§I`, and `§T`;
    - `§V`, `§I`, or `§T`: check only that section;
-   - any unknown or combined scope: return `INVALID_SCOPE` with the accepted
-     forms and stop.
+   - one or more `T<n>` arguments: check those tasks plus their directly cited
+     `§V` invariants and `§I` interfaces, in ledger order;
+   - mixed section, `--all`, and task-ID scopes, or any unknown scope: return
+     `INVALID_SCOPE` with the accepted forms and stop.
 2. Resolve the current Git root. If none exists, use the current directory.
 3. Read only `<root>/SPEC.md`. If absent, return `SPEC_MISSING` and stop: no
    code inspection, command execution, or write.
@@ -74,16 +76,25 @@ Do not report internal helpers as `EXTRA`.
 Classify task claims against implementation evidence:
 
 - `VERIFIED`: an `x` task has concrete implementation or proof;
+- `READY`: a selected `~` task has an unchanged Full Loop `BUILD_READY` handoff,
+  concrete implementation proof, passing required gates, and holding cited
+  contracts;
+- `INCOMPLETE`: a specifically selected open task has direct evidence that its
+  required outcome is absent or partial;
 - `STALE`: status contradicts direct evidence, including an `x` task whose
-  required work is absent or an open task whose full outcome is already proven;
+  required work is absent or an open task whose full outcome is already proven
+  outside a valid Full Loop handoff;
 - `UNVERIFIABLE`: task wording cannot be mapped to sufficient evidence.
 
-An open `.` or `~` status alone is not drift.
+An open `.` or `~` status alone is not drift. In a whole-section scan, expected
+unfinished work is neither `INCOMPLETE` nor a finding. A `READY` classification
+requires the supplied handoff; an ordinary `~` task is never presumed ready.
 
 ## Report
 
-Group findings under `§V`, `§I`, and `§T`. Omit `HOLD`, `MATCH`, and `VERIFIED`
-lines but count them in the summary. Report evidence gaps separately from drift.
+Group findings under `§V`, `§I`, and `§T`. Omit `HOLD`, `MATCH`, `VERIFIED`, and
+`READY` lines but count them in the summary. Report evidence gaps separately
+from drift.
 
 ```text
 §V
@@ -96,11 +107,11 @@ I.api DRIFT [worktree] `route.go:112` returns `{result}`, not `{id}`.
 §T
 T3 STALE [committed] `SPEC.md:31` is `x`; required middleware is absent from `auth/**`.
 
-summary: 2 drift; 1 stale; 1 unverifiable; 8 hold/match/verified.
+summary: 2 drift; 1 stale; 1 unverifiable; 8 hold/match/verified/ready.
 next: <one read-only remedy hint per reported class>
 ```
 
-If all selected items hold, match, or verify, output only:
+If all selected items hold, match, verify, or are ready, output only:
 
 `No drift found.`
 
@@ -110,6 +121,7 @@ Suggest actions; never invoke them:
 
 - worktree mismatch inside an active task, with correct existing `§V`/`§I`:
   resume `$craft:build <Tn>` without adding bug history;
+- incomplete selected task: resume `$craft:build <Tn>`;
 - committed or previously accepted defect, including false completion: invoke
   `$craft:backprop`;
 - missing work with an open task: invoke `$craft:build <Tn>`;

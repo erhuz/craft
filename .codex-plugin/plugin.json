@@ -1,7 +1,7 @@
 {
   "name": "craft",
-  "version": "0.1.0+codex.20260812115146",
-  "description": "Audit decisions, specify behavior, build minimally, detect drift, and feed defects back into the spec.",
+  "version": "0.1.0+codex.20260812123014",
+  "description": "Specify behavior, build minimally, audit decisions, check drift, and close tasks through a gated review loop.",
   "author": {
     "name": "Benjamin Fransson"
   },
@@ -9,14 +9,15 @@
     "spec-driven-development",
     "audit",
     "drift-detection",
+    "quality-loop",
     "minimalism",
     "backpropagation"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Craft",
-    "shortDescription": "Audit, specify, build, detect drift, and learn",
-    "longDescription": "A personal spec-driven workflow combining decision audits, minimal implementation, compact specifications, read-only drift detection, and defect backpropagation.",
+    "shortDescription": "Specify, build, review, detect drift, and learn",
+    "longDescription": "A personal spec-driven workflow combining compact specifications, minimal implementation, decision audits, read-only drift detection, a gated build-audit-check loop, and defect backpropagation.",
     "developerName": "Benjamin Fransson",
     "category": "Productivity",
     "capabilities": [
@@ -26,7 +27,7 @@
     "defaultPrompt": [
       "Use $craft:spec to turn this idea into SPEC.md.",
       "Use $craft:build --next to complete the next task.",
-      "Use $craft:check to reconcile SPEC.md with current code."
+      "Use $craft:full-loop --next --loop to build, review, and finish the next task."
     ]
   }
 }
