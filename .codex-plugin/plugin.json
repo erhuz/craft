@@ -28,8 +28,8 @@
     ],
     "defaultPrompt": [
       "$craft",
-      "Use $craft:plan to turn this rough idea into a researched, decision-ready implementation plan.",
-      "Use $craft:spec to turn this idea into SPEC.md.",
+      "$craft:plan",
+      "$craft:spec",
       "$craft:build --next",
       "$craft:full-loop --next --loop"
     ]

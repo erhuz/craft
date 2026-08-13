@@ -40,7 +40,7 @@ T5|x|Unify Build/Full Loop `--next` precedence & add table-driven selector proof
 T6|x|Probe dirty same-path baseline in disposable Git fixture; enforce overlap stop or exact hunk isolation|V6,I.git-ownership
 T7|x|Expand Check to current-truth `§G`/`§C`/`§I`/`§V`/`§T`, exclude `§B` & prove clean sentinel rejects drift/evidence gaps|V7,I.check-scope
 T8|x|Validate direct Build scope/task state before inspection or mutation, block invalid command-shaped implementation prompts & add table-driven contract proof|V8,I.build-scope,I.task-selector,I.prompt-hook
-T9|.|Anchor Plan/Spec activation, align defaults & cover canonical, multiline, quoted, embedded, explanatory, negated, punctuated, case-changed prompts|V9,I.prompt-hook,I.phase-state
+T9|x|Anchor Plan/Spec activation, align defaults & cover canonical, multiline, quoted, embedded, explanatory, negated, punctuated, case-changed prompts|V9,I.prompt-hook,I.phase-state
 
 §B
 id|date|cause|fix

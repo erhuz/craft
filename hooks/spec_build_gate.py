@@ -12,9 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-PRE_BUILD_INVOCATION = re.compile(
-    r"(?:^|\s)\$craft:(?:plan|spec)(?=\s|$)", re.IGNORECASE
-)
+PRE_BUILD_INVOCATION = re.compile(r"\A\s*\$craft:(?:plan|spec)(?=\s|$)")
 # ponytail: replace prompt grammar when both hosts expose a structured action ID.
 IMPLEMENTATION_INVOCATION = re.compile(
     r"\s*\$craft:(?:"

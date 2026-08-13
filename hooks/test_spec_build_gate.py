@@ -60,6 +60,45 @@ class CraftPromptRouterTest(unittest.TestCase):
                 output = spec_build_gate.handle({**event, "prompt": prompt})
                 self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
 
+    def test_only_first_token_canonical_pre_build_invocations_activate(self) -> None:
+        prompts = (
+            ("plan", "$craft:plan", True),
+            ("spec_args", "$craft:spec amend V9", True),
+            ("multiline", "\n\t$craft:plan\nexplore order imports", True),
+            ("quoted", '"$craft:plan"', False),
+            ("embedded", "prefix$craft:spec suffix", False),
+            (
+                "explanatory",
+                "Use $craft:plan to research order imports.",
+                False,
+            ),
+            ("negated", "Do not run $craft:spec amend V9", False),
+            ("punctuated", "$craft:plan.", False),
+            ("case_changed", "$Craft:spec amend V9", False),
+        )
+
+        with tempfile.TemporaryDirectory() as data_directory:
+            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
+                for index, (case, prompt, activates) in enumerate(prompts):
+                    with self.subTest(case=case, prompt=prompt):
+                        event = {
+                            "hook_event_name": "UserPromptSubmit",
+                            "session_id": f"session-pre-build-{index}",
+                            "turn_id": f"turn-pre-build-{index}",
+                            "cwd": data_directory,
+                        }
+                        output = spec_build_gate.handle(
+                            {**event, "prompt": prompt}
+                        )
+                        state = spec_build_gate._state_path(event)
+
+                        self.assertIsNotNone(state)
+                        self.assertEqual(state.exists(), activates)
+                        if activates:
+                            self.assertIn("PRE-BUILD GATE ACTIVE", str(output))
+                        else:
+                            self.assertIsNone(output)
+
     def test_implement_plan_requires_an_explicit_craft_phase(self) -> None:
         with tempfile.TemporaryDirectory() as data_directory:
             event = {
@@ -255,6 +294,38 @@ class CraftPromptRouterTest(unittest.TestCase):
             with self.subTest(prompt=prompt):
                 self.assertIsNotNone(
                     spec_build_gate.IMPLEMENTATION_INVOCATION.fullmatch(prompt)
+                )
+
+    def test_pre_build_defaults_are_canonical_invocations(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        agent_defaults = []
+        for name in ("plan", "spec"):
+            metadata = (
+                root / "skills" / name / "agents" / "openai.yaml"
+            ).read_text()
+            raw = next(
+                line.split(":", 1)[1].strip()
+                for line in metadata.splitlines()
+                if line.strip().startswith("default_prompt:")
+            )
+            agent_defaults.append(json.loads(raw))
+
+        expected = ["$craft:plan", "$craft:spec"]
+        self.assertEqual(agent_defaults, expected)
+
+        plugin_defaults = json.loads(
+            (root / ".codex-plugin" / "plugin.json").read_text()
+        )["interface"]["defaultPrompt"]
+        pre_build_defaults = [
+            prompt
+            for prompt in plugin_defaults
+            if "$craft:plan" in prompt or "$craft:spec" in prompt
+        ]
+        self.assertCountEqual(pre_build_defaults, expected)
+        for prompt in pre_build_defaults:
+            with self.subTest(prompt=prompt):
+                self.assertIsNotNone(
+                    spec_build_gate.PRE_BUILD_INVOCATION.fullmatch(prompt)
                 )
 
 
