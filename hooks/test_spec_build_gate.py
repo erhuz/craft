@@ -221,6 +221,36 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_check_reconciles_current_truth_sections_only(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "check" / "SKILL.md").read_text()
+        load = " ".join(skill.partition("## Load")[2].partition("\n## ")[0].split())
+        report = " ".join(
+            skill.partition("## Report")[2].partition("\n## ")[0].split()
+        )
+
+        self.assertIn(
+            "no argument or `--all`: check `§G`, `§C`, `§I`, `§V`, and `§T`",
+            load,
+        )
+        for section in ("§G", "§C", "§I", "§V", "§T"):
+            with self.subTest(section=section):
+                self.assertIn(f"## Check `{section}`", skill)
+        self.assertIn(
+            "`§B`: return `INVALID_SCOPE`; append-only defect history is not "
+            "current truth and never participates in drift",
+            load,
+        )
+        self.assertIn(
+            "If any selected item is `DRIFT`, `VIOLATE`, `MISSING`, `EXTRA`, "
+            "`STALE`, `INCOMPLETE`, or `UNVERIFIABLE`, do not output the clean "
+            "sentinel.",
+            report,
+        )
+        self.assertIn(
+            "or is legitimately expected open work, output only:", report
+        )
+
     def test_build_stops_before_dirty_same_path_staging(self) -> None:
         root = Path(__file__).resolve().parents[1]
         with tempfile.TemporaryDirectory() as data_directory:

@@ -3,9 +3,9 @@ name: check
 description: >
   Reconcile the repository-root SPEC.md with current code read-only. Use when
   explicitly invoked as $craft:check or delegated by $craft:full-loop to check
-  all ledger sections, narrow the scan to §V, §I, or §T, or verify one or more
-  task IDs and their cited contracts. Report evidence and remedy hints; never
-  write or invoke another Craft phase.
+  current §G, §C, §I, §V, and §T truth, narrow the scan to one of those
+  sections, or verify one or more task IDs and their cited contracts. Report
+  evidence and remedy hints; never write or invoke another Craft phase.
 ---
 
 # Check
@@ -16,10 +16,12 @@ decide whether code or specification must change.
 ## Load
 
 1. Parse the invocation before repository inspection:
-   - no argument or `--all`: check `§V`, `§I`, and `§T`;
-   - `§V`, `§I`, or `§T`: check only that section;
+   - no argument or `--all`: check `§G`, `§C`, `§I`, `§V`, and `§T`;
+   - `§G`, `§C`, `§I`, `§V`, or `§T`: check only that section;
    - one or more `T<n>` arguments: check those tasks plus their directly cited
      `§V` invariants and `§I` interfaces, in ledger order;
+   - `§B`: return `INVALID_SCOPE`; append-only defect history is not current
+     truth and never participates in drift;
    - mixed section, `--all`, and task-ID scopes, or any unknown scope: return
      `INVALID_SCOPE` with the accepted forms and stop.
 2. Resolve the current Git root. If none exists, use the current directory.
@@ -50,14 +52,28 @@ Label each finding:
 - `unknown`: no Git repository exists or evidence cannot establish provenance.
 
 Never treat an uncommitted implementation mistake as accepted product behavior.
+Never select or classify `§B`; its rows remain append-only history.
 
-## Check `§V`
+## Check `§G`
 
-Classify every selected invariant:
+Classify the current goal:
 
-- `HOLD`: direct code or test evidence implements the rule;
-- `VIOLATE`: direct evidence contradicts the rule;
-- `UNVERIFIABLE`: available source cannot prove or disprove the rule.
+- `MATCH`: implementation and declared open work remain aligned with the stated
+  outcome;
+- `DRIFT`: direct current evidence contradicts the outcome or shows the product
+  now targets a materially different outcome;
+- `UNVERIFIABLE`: available source cannot prove or disprove the goal.
+
+An unfinished legitimate open task alone is not goal drift.
+
+## Check `§C`
+
+Classify every current constraint and explicit non-goal:
+
+- `MATCH`: direct source, configuration, or repository state supports it;
+- `DRIFT`: direct current evidence contradicts it or resolves a condition still
+  presented as current or unknown;
+- `UNVERIFIABLE`: available source cannot prove or disprove it.
 
 ## Check `§I`
 
@@ -70,6 +86,14 @@ Classify every selected interface:
   `§I`.
 
 Do not report internal helpers as `EXTRA`.
+
+## Check `§V`
+
+Classify every selected invariant:
+
+- `HOLD`: direct code or test evidence implements the rule;
+- `VIOLATE`: direct evidence contradicts the rule;
+- `UNVERIFIABLE`: available source cannot prove or disprove the rule.
 
 ## Check `§T`
 
@@ -92,11 +116,17 @@ requires the supplied handoff; an ordinary `~` task is never presumed ready.
 
 ## Report
 
-Group findings under `§V`, `§I`, and `§T`. Omit `HOLD`, `MATCH`, `VERIFIED`, and
-`READY` lines but count them in the summary. Report evidence gaps separately
-from drift.
+Group findings under `§G`, `§C`, `§I`, `§V`, and `§T`. Omit `HOLD`, `MATCH`,
+`VERIFIED`, `READY`, and expected-open task lines but count them in the summary.
+Report evidence gaps separately from drift.
 
 ```text
+§G
+DRIFT [committed] `README.md:8` describes a different product outcome.
+
+§C
+DRIFT [worktree] `SPEC.md:6` still presents a condition resolved by `gate.py:47`.
+
 §V
 V2 VIOLATE [committed] `auth/mw.go:47` uses `<`, but V2 requires `≤`.
 V5 UNVERIFIABLE [unknown] searched `auth/**`; no proof covers every request path.
@@ -107,11 +137,14 @@ I.api DRIFT [worktree] `route.go:112` returns `{result}`, not `{id}`.
 §T
 T3 STALE [committed] `SPEC.md:31` is `x`; required middleware is absent from `auth/**`.
 
-summary: 2 drift; 1 stale; 1 unverifiable; 8 hold/match/verified/ready.
+summary: 4 drift; 1 stale; 1 unverifiable; 8 hold/match/verified/ready.
 next: <one read-only remedy hint per reported class>
 ```
 
-If all selected items hold, match, verify, or are ready, output only:
+If any selected item is `DRIFT`, `VIOLATE`, `MISSING`, `EXTRA`, `STALE`,
+`INCOMPLETE`, or `UNVERIFIABLE`, do not output the clean sentinel. If every
+selected item holds, matches, verifies, is ready, or is legitimately expected
+open work, output only:
 
 `No drift found.`
 
@@ -124,6 +157,8 @@ Suggest actions; never invoke them:
 - incomplete selected task: resume `$craft:build <Tn>`;
 - committed or previously accepted defect, including false completion: invoke
   `$craft:backprop`;
+- stale or intentionally changed `§G`/`§C` truth: invoke `$craft:spec amend §G`
+  or `$craft:spec amend §C`;
 - missing work with an open task: invoke `$craft:build <Tn>`;
 - planned missing work not yet claimed complete and without a task: invoke
   `$craft:spec amend §T`;
