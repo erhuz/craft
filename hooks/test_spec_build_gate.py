@@ -67,6 +67,8 @@ class CraftPromptRouterTest(unittest.TestCase):
             ("plan", "$craft:plan", True),
             ("spec_args", "$craft:spec amend constraints", True),
             ("distill", "$craft:distill", True),
+            ("distill_candidate", "$craft:distill --candidate", True),
+            ("distill_promote", "$craft:distill --promote", True),
             ("destill_alias", "$craft:destill", True),
             ("multiline", "\n\t$craft:plan\nexplore order imports", True),
             ("quoted", '"$craft:plan"', False),
@@ -177,10 +179,12 @@ class CraftPromptRouterTest(unittest.TestCase):
             "cwd": "/tmp",
         }
         prompts = (
-            "$craft:distill --all",
+            "$craft:distill --candidate --promote",
             "$craft:destill section",
             "$craft:distill $craft:spec",
             "$craft:distill.",
+            "$craft:distill --candidate foo",
+            "$craft:distill --promote unknown",
         )
 
         with patch.dict(os.environ, {}, clear=True):
@@ -199,7 +203,7 @@ class CraftPromptRouterTest(unittest.TestCase):
                     {**event, "prompt": "$craft:spec amend §C"}
                 )
                 spec_build_gate.handle(
-                    {**event, "prompt": "$craft:distill --all"}
+                    {**event, "prompt": "$craft:distill --candidate"}
                 )
                 blocked = spec_build_gate.handle(
                     {**event, "prompt": "Implement plan"}
@@ -498,7 +502,10 @@ class CraftSkillPolicyTest(unittest.TestCase):
         caveman_normalized = " ".join(caveman.split())
 
         for contract in (
-            "Accept only the exact trimmed command `$craft:distill` with no arguments",
+            "Accept one of:",
+            "`$craft:distill`",
+            "--candidate",
+            "--promote",
             "If any task is `~`, return `ACTIVE_TASK`",
             "return `SPEC_ID_REFERENCE` with exact locations and stop",
             "choose `defect`, `changed intent`, or `unknown`",
@@ -510,7 +517,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
             "If any material input differs, return `DISTILL_STALE`",
             "return `DISTILL_UNRESOLVED` and write nothing",
             "including relevant untracked files",
-            "Replace `SPEC.md` atomically with exactly the confirmed content",
+            "In Candidate mode, replace only `NEW_SPEC.md` and `DISTILL_MIGRATION.md`",
+            "atomically replace `SPEC.md` with `NEW_SPEC.md`",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, normalized)

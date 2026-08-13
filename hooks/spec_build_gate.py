@@ -13,7 +13,9 @@ from typing import Any
 
 
 PRE_BUILD_INVOCATION = re.compile(r"\A\s*\$craft:(?:plan|spec)(?=\s|$)")
-DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
+DISTILL_INVOCATION = re.compile(
+    r"\A\s*\$craft:(?:distill(?:(?:\s+--(?:candidate|promote))?\s*)?|destill)\Z"
+)
 DISTILL_COMMAND_SHAPE = re.compile(
     r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
 )
@@ -30,7 +32,8 @@ IMPLEMENTATION_COMMANDS = {"$craft:build", "$craft:full-loop"}
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
-    "INVALID_SCOPE: use $craft:distill or $craft:destill without arguments."
+    "INVALID_SCOPE: use $craft:distill, $craft:distill --candidate, "
+    "$craft:distill --promote, or $craft:destill."
 )
 INVALID_IMPLEMENTATION_SCOPE_REASON = (
     "INVALID_SCOPE: use a canonical $craft:build or $craft:full-loop invocation."
@@ -177,8 +180,9 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
                     "additionalContext": (
                         "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
                         "$craft:spec may edit SPEC.md only; $craft:distill and "
-                        "$craft:destill may rewrite SPEC.md only after a confirmed "
-                        "preview. None authorizes or continues into Build."
+                        "$craft:destill may materialize candidate or confirmed "
+                        "distill artifacts only after a confirmed preview. None "
+                        "authorizes or continues into Build."
                     ),
                 }
             }

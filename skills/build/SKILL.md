@@ -86,6 +86,11 @@ Use domain meaning rather than volatile ledger labels throughout implementation:
 - Identify the selected task in working output only through its exact Build
   command selector. Describe its goal, invariants, and interfaces by content,
   without standalone ledger labels.
+- During active Distill migration, allow temporary candidate identifiers in
+  `NEW_SPEC.md` and `DISTILL_MIGRATION.md` to support external-reference
+  replacement planning. Build may read migration mappings to replace references
+  with stable domain language, but `SPEC.md` remains authoritative until
+  explicit `$craft:distill --promote`.
 - Give every authored or materially changed non-generated function, including
   test functions, a language-appropriate comment or docstring explaining its
   intended use and why it exists. Generated and vendored functions are exempt;
