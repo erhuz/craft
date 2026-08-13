@@ -57,10 +57,10 @@ Before any write, output:
 Cause: <root cause>
 Evidence: <location or reproduction>
 Spec proposal:
-- B<next>: <cause and resulting fix reference>
-- V<next>: <testable rule>       # only when needed
-- I.<name>: <contract change>    # only when needed
-- T<next>: <implementation task> # only when needed
+- §B row: <cause and resulting fix meaning>
+- §V rule: <testable rule>              # only when needed
+- §I contract: <interface change>       # only when needed
+- §T task: <implementation task>        # only when needed
 Regression: <failing test target or why no invariant/test applies>
 ```
 
@@ -71,18 +71,19 @@ or code before confirmation.
 
 After confirmation:
 
-1. Invoke `$craft:spec` with the confirmed change set. It allocates final IDs
+1. Invoke `$craft:spec` with the confirmed change set. It allocates ledger IDs
    and applies semantic `SPEC.md` changes.
 2. Invoke or resume `$craft:build` for the resulting task.
 3. Build writes the named failing regression first when a new invariant exists,
    implements the smallest root-cause fix, and runs focused plus required final
    verification.
 4. Build stages the exact spec, test, and code files and creates one combined
-   commit: `backprop B<n> + V<n>: <cause>`; omit `+ V<n>` if none was added.
+   commit: `fix: <root cause>`.
 
-Return the final IDs, verification result, and commit. If verification exposes a
-different root cause, stop and revise the proposal rather than recursively
-inventing more spec history.
+Return the applied SPEC diff, verification result, and commit without repeating
+ledger identifiers in handoff prose. If verification exposes a different root
+cause, stop and revise the proposal rather than recursively inventing more spec
+history.
 
 ## Boundaries
 

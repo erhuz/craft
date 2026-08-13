@@ -65,11 +65,12 @@ For each selected task:
 
 1. Record baseline `HEAD`, current status, and unrelated dirty paths.
 2. Delegate the task to Build in Full Loop review mode. Build implements and
-   verifies it, leaves it `~`, and returns `BUILD_READY` with the exact
-   task-owned diff and evidence. Do not review a blocked or incomplete handoff.
-3. Delegate to Audit with the task row, its cited contracts, baseline, exact
-   task-owned diff, and verification evidence. Explicitly request one minimal
-   `Remedy:` per issue.
+   verifies it, leaves it `~`, and returns `BUILD_READY` with the exact delegated
+   Build command selector, domain contract text, task-owned diff, and evidence.
+   Do not review a blocked or incomplete handoff.
+3. Delegate to Audit with the task goal, cited contract content without ledger
+   labels, baseline, exact task-owned diff, and verification evidence.
+   Explicitly request one minimal `Remedy:` per issue.
 4. Regardless of Audit findings, delegate to Check as `$craft:check T<n>` with
    the same `BUILD_READY` evidence. Keep both phases read-only and sequential.
 5. Pass only when Audit outputs exactly `No material issues found.` and Check
@@ -112,9 +113,10 @@ task or an `--all` snapshot.
 ## Finish
 
 Return `FULL_LOOP_PASS` only after every selected task has both clean review
-sentinels and its own verified commit. Include task IDs, commit SHAs, and each
-task's return-to-Build count. A committed task is complete; a clean but
-uncommitted handoff is not.
+sentinels and its own verified commit. Include task goals, commit SHAs, and each
+task's return-to-Build count; use an exact Craft command selector only when a
+task must be disambiguated. A committed task is complete; a clean but uncommitted
+handoff is not.
 
 ## Boundaries
 

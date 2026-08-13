@@ -1,0 +1,6 @@
+interface:
+  display_name: "Distill"
+  short_description: "Compact SPEC.md; alias: $craft:destill"
+  default_prompt: "$craft:distill"
+policy:
+  allow_implicit_invocation: false

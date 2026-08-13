@@ -151,6 +151,6 @@ output only:
 
 - Read-only: no target edits, semantic spec changes, staging, commits, pushes,
   installations, deployments, provider actions, or saved critique artifacts.
-- Do not invoke Audit, Check, Spec, Build, Backprop, or Full Loop.
+- Do not invoke Audit, Check, Spec, Distill, Build, Backprop, or Full Loop.
 - No sub-agents, parallel workers, dashboards, persistence, or open-ended scan
   loops at runtime.

@@ -1,7 +1,7 @@
 {
   "name": "craft",
   "version": "0.1.0+codex.20260812135311",
-  "description": "Plan concepts, specify behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
+  "description": "Plan concepts, specify and distill current behavior, build minimally, critique aggressively, audit decisions, check drift, and close tasks through a gated review loop.",
   "author": {
     "name": "Benjamin Fransson"
   },
@@ -18,8 +18,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Craft",
-    "shortDescription": "Plan, specify, build, critique, audit, and learn",
-    "longDescription": "A personal workflow combining research-led concept planning, compact specifications, minimal implementation, adversarial read-only critique, conservative decision audits, drift detection, a gated build-audit-check loop, and defect backpropagation.",
+    "shortDescription": "Plan, specify, distill, build, critique, audit, and learn",
+    "longDescription": "A personal workflow combining research-led concept planning, compact specifications, confirmed current-truth distillation, minimal implementation, adversarial read-only critique, conservative decision audits, drift detection, a gated build-audit-check loop, and defect backpropagation.",
     "developerName": "Benjamin Fransson",
     "category": "Productivity",
     "capabilities": [
@@ -30,6 +30,7 @@
       "$craft",
       "$craft:plan",
       "$craft:spec",
+      "$craft:distill",
       "$craft:build --next",
       "$craft:full-loop --next --loop"
     ]

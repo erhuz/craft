@@ -50,10 +50,13 @@ id|date|cause|fix
 B1|YYYY-MM-DD|<root cause>|V1,T1
 ```
 
-Use `.` todo, `~` work in progress, `x` done. Keep V/T/B numbering monotonic;
-never reuse or renumber identifiers. Escape literal `|` as `\|`. `§T.cites`
-lists invariant and interface dependencies; `!` may mark a hard dependency
-when local `FORMAT.md` permits it.
+Use `.` todo, `~` work in progress, `x` done. Outside a confirmed
+`$craft:distill`, keep V/T/B numbering monotonic and never reuse or renumber
+identifiers. A confirmed Distill may remove rows and renumber survivors from 1
+only while atomically rewriting every citation under its canonical contract.
+Keep `§B` append-only between Distill runs. Escape literal `|` as `\|`.
+`§T.cites` lists invariant and interface dependencies; `!` may mark a hard
+dependency when local `FORMAT.md` permits it.
 
 Use normal English for external prose, commit messages, pull requests, code
 comments, and user-requested explanations.

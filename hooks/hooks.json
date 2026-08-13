@@ -1,5 +1,5 @@
 {
-  "description": "Load Ponytail, render Craft's catalog, and guard explicit Plan, Spec, and Build phases.",
+  "description": "Load Ponytail, render Craft's catalog, and guard explicit Plan, Spec, Distill, and Build phases.",
   "hooks": {
     "SessionStart": [
       {

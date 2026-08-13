@@ -20,8 +20,8 @@ decide whether code or specification must change.
    - `§G`, `§C`, `§I`, `§V`, or `§T`: check only that section;
    - one or more `T<n>` arguments: check those tasks plus their directly cited
      `§V` invariants and `§I` interfaces, in ledger order;
-   - `§B`: return `INVALID_SCOPE`; append-only defect history is not current
-     truth and never participates in drift;
+   - `§B`: return `INVALID_SCOPE`; historical defect rows are not current truth
+     and never participate in drift;
    - mixed section, `--all`, and task-ID scopes, or any unknown scope: return
      `INVALID_SCOPE` with the accepted forms and stop.
 2. Resolve the current Git root. If none exists, use the current directory.
@@ -52,7 +52,8 @@ Label each finding:
 - `unknown`: no Git repository exists or evidence cannot establish provenance.
 
 Never treat an uncommitted implementation mistake as accepted product behavior.
-Never select or classify `§B`; its rows remain append-only history.
+Never select or classify `§B`; its rows remain historical and are pruned only
+by confirmed Distill.
 
 ## Check `§G`
 
@@ -173,7 +174,7 @@ a committed false completion through Backprop.
 
 - Zero writes: no `SPEC.md` or code edits, tests, builds, checks, linting,
   formatting, staging, commits, pushes, deployments, or provider actions.
-- No automatic Spec, Build, Backprop, or Audit invocation.
+- No automatic Spec, Distill, Build, Backprop, or Audit invocation.
 - No sub-agents, dashboards, scores, severity labels, fixes, or redesigns.
 - No sibling-repository or runtime widening without explicit scope.
 - Clean result is `No drift found.`, `SPEC_MISSING`, `FORMAT_MISSING`, or

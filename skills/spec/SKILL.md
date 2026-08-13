@@ -1,11 +1,12 @@
 ---
 name: spec
 description: >
-  Create, distill, or amend the repository-root SPEC.md, and apply a confirmed
-  backprop change set. Use only when explicitly invoked as $craft:spec for a new
-  specification, from-code distillation, a targeted section amendment, or a
-  semantic spec update proposed by $craft:backprop. This skill owns semantic
-  SPEC.md content; it does not implement code, run builds, or commit.
+  Create or amend the repository-root SPEC.md, bootstrap one from current code,
+  and apply a confirmed backprop change set. Use only when explicitly invoked
+  as $craft:spec for a new specification, from-code bootstrap, a targeted
+  section amendment, or a semantic spec update proposed by $craft:backprop.
+  This skill owns semantic SPEC.md content; it does not implement code, run
+  builds, or commit.
 ---
 
 # Spec
@@ -30,7 +31,7 @@ skill.
 ## Dispatch
 
 - No `SPEC.md`, idea supplied: create a new spec.
-- No `SPEC.md`, `from-code` supplied: distill the current codebase.
+- No `SPEC.md`, `from-code` supplied: bootstrap from the current codebase.
 - Existing `SPEC.md`, `amend <section>` supplied: amend only that section and
   direct dependencies required to keep references valid.
 - Confirmed Backprop change set supplied: apply it exactly, allocating final IDs.
@@ -54,7 +55,7 @@ Do not invent users, scale, integrations, configurability, or business rules.
 Mark genuinely uncertain claims with `?`. Show the resulting diff. Never start
 Build automatically.
 
-## Distill from code
+## Bootstrap from code
 
 Inspect the README, manifests, entry points, public interfaces, migrations,
 tests, assertions, and known TODOs. Derive observed behavior rather than an
@@ -72,9 +73,10 @@ Mark inference with `?`; do not present guesses as system truth.
 ## Amend
 
 Read the named section and the references that constrain it. Preserve unrelated
-sections, wording, IDs, and task status. Allocate IDs monotonically; never reuse
-deleted IDs. Change direct dependencies only when needed to avoid a dangling or
-contradictory reference, and call those changes out in the diff.
+sections, wording, IDs, and task status. Outside a confirmed `$craft:distill`,
+allocate IDs monotonically and never reuse deleted IDs. Change direct
+dependencies only when needed to avoid a dangling or contradictory reference,
+and call those changes out in the diff.
 
 ## Apply Backprop
 
@@ -87,13 +89,16 @@ Require all of the following before writing:
 - optional `§V`, `§I`, and `§T` changes;
 - named regression test target when a new invariant is proposed.
 
-Allocate final IDs, append the `§B` row, add only confirmed semantic changes,
-and return the allocated IDs to Backprop. Do not edit code or commit.
+Allocate final IDs from the current ledger, append the `§B` row, add only
+confirmed semantic changes, and return the applied SPEC diff to Backprop. Do
+not edit code or commit.
 
 ## Boundaries
 
 - Semantic `SPEC.md` writes only; no implementation, tests, verification, or git
   commit.
+- Existing-ledger compaction and renumbering belong only to confirmed
+  `$craft:distill`.
 - No sub-agents, dashboards, auxiliary state, or speculative scaffolding.
 - Preserve exact paths, identifiers, commands, and code tokens.
 - A clean result is a focused diff, `SPEC_MISSING`, or `FORMAT_MISSING`; never

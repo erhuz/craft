@@ -61,20 +61,25 @@ class CraftPromptRouterTest(unittest.TestCase):
                 self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
 
     def test_only_first_token_canonical_pre_build_invocations_activate(self) -> None:
+        """Activate the gate only for exact semantic-phase command grammar."""
+
         prompts = (
             ("plan", "$craft:plan", True),
-            ("spec_args", "$craft:spec amend V9", True),
+            ("spec_args", "$craft:spec amend constraints", True),
+            ("distill", "$craft:distill", True),
+            ("destill_alias", "$craft:destill", True),
             ("multiline", "\n\t$craft:plan\nexplore order imports", True),
             ("quoted", '"$craft:plan"', False),
+            ("quoted_alias", '"$craft:destill"', False),
             ("embedded", "prefix$craft:spec suffix", False),
             (
                 "explanatory",
                 "Use $craft:plan to research order imports.",
                 False,
             ),
-            ("negated", "Do not run $craft:spec amend V9", False),
+            ("negated", "Do not run $craft:spec amend constraints", False),
             ("punctuated", "$craft:plan.", False),
-            ("case_changed", "$Craft:spec amend V9", False),
+            ("case_changed", "$Craft:spec amend constraints", False),
         )
 
         with tempfile.TemporaryDirectory() as data_directory:
@@ -100,6 +105,8 @@ class CraftPromptRouterTest(unittest.TestCase):
                             self.assertIsNone(output)
 
     def test_implement_plan_requires_an_explicit_craft_phase(self) -> None:
+        """Keep natural-language implementation blocked after semantic work."""
+
         with tempfile.TemporaryDirectory() as data_directory:
             event = {
                 "hook_event_name": "UserPromptSubmit",
@@ -128,6 +135,21 @@ class CraftPromptRouterTest(unittest.TestCase):
                 )
                 self.assertEqual(blocked["decision"], "block")
 
+                distill = spec_build_gate.handle(
+                    {**event, "prompt": "$craft:distill"}
+                )
+                self.assertIn("confirmed preview", str(distill))
+
+                blocked = spec_build_gate.handle(
+                    {**event, "prompt": "Implement plan"}
+                )
+                self.assertEqual(blocked["decision"], "block")
+
+                alias = spec_build_gate.handle(
+                    {**event, "prompt": "$craft:destill"}
+                )
+                self.assertIn("$craft:destill", str(alias))
+
                 spec_build_gate.handle({**event, "prompt": "$craft:build --next"})
                 allowed = spec_build_gate.handle(
                     {**event, "prompt": "Implement plan"}
@@ -144,6 +166,45 @@ class CraftPromptRouterTest(unittest.TestCase):
                     {**event, "prompt": "Implement the plan"}
                 )
                 self.assertIsNone(allowed)
+
+    def test_invalid_command_shaped_distill_invocations_block(self) -> None:
+        """Reject lossy-workflow scope errors before phase state can change."""
+
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-invalid-distill-scope",
+            "turn_id": "turn-invalid-distill-scope",
+            "cwd": "/tmp",
+        }
+        prompts = (
+            "$craft:distill --all",
+            "$craft:destill section",
+            "$craft:distill $craft:spec",
+            "$craft:distill.",
+        )
+
+        with patch.dict(os.environ, {}, clear=True):
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    output = spec_build_gate.handle({**event, "prompt": prompt})
+                    self.assertEqual(output["decision"], "block")
+                    self.assertEqual(
+                        output["reason"],
+                        spec_build_gate.INVALID_DISTILL_SCOPE_REASON,
+                    )
+
+        with tempfile.TemporaryDirectory() as data_directory:
+            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:spec amend §C"}
+                )
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:distill --all"}
+                )
+                blocked = spec_build_gate.handle(
+                    {**event, "prompt": "Implement plan"}
+                )
+                self.assertEqual(blocked["decision"], "block")
 
     def test_only_canonical_implementation_invocations_unlock(self) -> None:
         prompts = (
@@ -297,9 +358,11 @@ class CraftPromptRouterTest(unittest.TestCase):
                 )
 
     def test_pre_build_defaults_are_canonical_invocations(self) -> None:
+        """Expose canonical semantic defaults while keeping the alias explicit."""
+
         root = Path(__file__).resolve().parents[1]
         agent_defaults = []
-        for name in ("plan", "spec"):
+        for name in ("plan", "spec", "distill"):
             metadata = (
                 root / "skills" / name / "agents" / "openai.yaml"
             ).read_text()
@@ -310,7 +373,7 @@ class CraftPromptRouterTest(unittest.TestCase):
             )
             agent_defaults.append(json.loads(raw))
 
-        expected = ["$craft:plan", "$craft:spec"]
+        expected = ["$craft:plan", "$craft:spec", "$craft:distill"]
         self.assertEqual(agent_defaults, expected)
 
         plugin_defaults = json.loads(
@@ -319,14 +382,37 @@ class CraftPromptRouterTest(unittest.TestCase):
         pre_build_defaults = [
             prompt
             for prompt in plugin_defaults
-            if "$craft:plan" in prompt or "$craft:spec" in prompt
+            if prompt in expected
         ]
         self.assertCountEqual(pre_build_defaults, expected)
         for prompt in pre_build_defaults:
             with self.subTest(prompt=prompt):
-                self.assertIsNotNone(
+                self.assertTrue(
                     spec_build_gate.PRE_BUILD_INVOCATION.fullmatch(prompt)
+                    or spec_build_gate.DISTILL_INVOCATION.fullmatch(prompt)
                 )
+
+    def test_destill_is_an_explicit_alias_to_the_canonical_contract(self) -> None:
+        """Keep the misspelled selector as metadata-documented delegation."""
+
+        root = Path(__file__).resolve().parents[1]
+        canonical = (root / "skills" / "distill" / "SKILL.md").read_text()
+        alias = (root / "skills" / "destill" / "SKILL.md").read_text()
+        metadata = (
+            root / "skills" / "destill" / "agents" / "openai.yaml"
+        ).read_text()
+        canonical_normalized = " ".join(canonical.split())
+        alias_normalized = " ".join(alias.split())
+
+        self.assertIn(
+            "$craft:destill is the explicit compatibility alias",
+            canonical_normalized,
+        )
+        self.assertIn("Skill metadata registers one name", alias_normalized)
+        self.assertIn("Read all of `../distill/SKILL.md`", alias_normalized)
+        self.assertIn('default_prompt: "$craft:destill"', metadata)
+        self.assertIn("metadata has one name", metadata)
+        self.assertIn("allow_implicit_invocation: false", metadata)
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
@@ -370,6 +456,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
         )
 
     def test_check_reconciles_current_truth_sections_only(self) -> None:
+        """Exclude historical defects from current-truth drift classification."""
+
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "check" / "SKILL.md").read_text()
         load = " ".join(skill.partition("## Load")[2].partition("\n## ")[0].split())
@@ -385,8 +473,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
             with self.subTest(section=section):
                 self.assertIn(f"## Check `{section}`", skill)
         self.assertIn(
-            "`§B`: return `INVALID_SCOPE`; append-only defect history is not "
-            "current truth and never participates in drift",
+            "`§B`: return `INVALID_SCOPE`; historical defect rows are not "
+            "current truth and never participate in drift",
             load,
         )
         self.assertIn(
@@ -398,6 +486,70 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertIn(
             "or is legitimately expected open work, output only:", report
         )
+
+    def test_distill_requires_a_stable_confirmed_current_truth_rewrite(self) -> None:
+        """Preserve intent and data-loss guards across preview and application."""
+
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "distill" / "SKILL.md").read_text()
+        caveman = (root / "skills" / "caveman" / "SKILL.md").read_text()
+        spec = (root / "skills" / "spec" / "SKILL.md").read_text()
+        normalized = " ".join(skill.split())
+        caveman_normalized = " ".join(caveman.split())
+
+        for contract in (
+            "Accept only the exact trimmed command `$craft:distill` with no arguments",
+            "If any task is `~`, return `ACTIVE_TASK`",
+            "return `SPEC_ID_REFERENCE` with exact locations and stop",
+            "choose `defect`, `changed intent`, or `unknown`",
+            "`defect` and `unknown` keep the intended ledger rule",
+            "When two ledger claims express mutually exclusive intent",
+            "requires an explicit answer",
+            "Renumber surviving `V`, `T`, and `B` rows independently from 1",
+            "Write nothing on the preview turn",
+            "If any material input differs, return `DISTILL_STALE`",
+            "return `DISTILL_UNRESOLVED` and write nothing",
+            "including relevant untracked files",
+            "Replace `SPEC.md` atomically with exactly the confirmed content",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, normalized)
+
+        self.assertIn("`No distillation needed.`", skill)
+        self.assertIn("Outside a confirmed `$craft:distill`", caveman_normalized)
+        self.assertIn("renumber survivors from 1", caveman_normalized)
+        self.assertIn("## Bootstrap from code", spec)
+        self.assertNotIn("## Distill from code", spec)
+
+    def test_build_uses_domain_artifacts_and_goal_based_commits(self) -> None:
+        """Prevent volatile ledger labels from coupling implementation outputs."""
+
+        root = Path(__file__).resolve().parents[1]
+        build = (root / "skills" / "build" / "SKILL.md").read_text()
+        backprop = (root / "skills" / "backprop" / "SKILL.md").read_text()
+        full_loop = (root / "skills" / "full-loop" / "SKILL.md").read_text()
+        artifact = " ".join(
+            build.partition("## Implementation artifact contract")[2]
+            .partition("\n## ")[0]
+            .split()
+        )
+
+        self.assertIn(
+            "Actual SPEC identifiers may appear only inside `SPEC.md` and exact "
+            "Craft command selectors",
+            artifact,
+        )
+        self.assertIn(
+            "every authored or materially changed non-generated function",
+            artifact,
+        )
+        self.assertIn("including test functions", artifact)
+        self.assertIn("Feature commit: `build: <goal>`", build)
+        self.assertIn("`fix: <root cause>`", build)
+        self.assertIn("commit: `fix: <root cause>`", backprop)
+        self.assertIn("task goals, commit SHAs", full_loop)
+        self.assertNotIn("Feature commit: `T<n>:", build)
+        self.assertNotIn("commit: `backprop B<n>", backprop)
 
     def test_build_stops_before_dirty_same_path_staging(self) -> None:
         root = Path(__file__).resolve().parents[1]

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Destill Alias"
+  short_description: "Alias to $craft:distill; metadata has one name"
+  default_prompt: "$craft:destill"
+policy:
+  allow_implicit_invocation: false

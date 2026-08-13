@@ -7,7 +7,7 @@ description: >
   Report only material decision-quality issues: unsupported value, invented
   product truth, unjustified complexity, broken logic, state mismatch, false
   completeness, missing failure behavior, and evidence gaps. Remain read-only;
-  do not praise, summarize, redesign, fix, or advance into Spec unless
+  do not praise, summarize, redesign, fix, or advance into Spec or Distill unless
   explicitly requested.
 ---
 
@@ -158,8 +158,9 @@ Issues:
 ```
 
 If the user explicitly requests solutions, add one minimal `Remedy:` line to
-each issue; do not add a separate plan or silently invoke Spec. After the user
-accepts or resolves issues, they may explicitly invoke `$craft:spec`.
+each issue; do not add a separate plan or silently invoke Spec or Distill. After
+the user accepts or resolves issues, they may explicitly invoke `$craft:spec` or
+`$craft:distill` as appropriate.
 
 If no supported material issue or required evidence gap exists, output only:
 
@@ -167,9 +168,10 @@ If no supported material issue or required evidence gap exists, output only:
 
 ## Full Loop delegation
 
-When delegated by Full Loop, inspect only the selected task row, its cited
-contracts, the baseline and exact task-owned `BUILD_READY` diff, and its
-verification evidence. Do not widen into unrelated ledger items or paths.
+When delegated by Full Loop, inspect only the exact delegated Build command
+selector, task goal, cited contract content without ledger labels, baseline,
+exact task-owned `BUILD_READY` diff, and verification evidence. Do not widen
+into unrelated ledger items or paths.
 
 Full Loop's delegated request explicitly asks for solutions, so add exactly one
 minimal `Remedy:` to each issue. Remain read-only and preserve the exact clean

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render Craft's catalog and require explicit Build after Plan or Spec."""
+"""Render Craft's catalog and require explicit Build after semantic phases."""
 
 from __future__ import annotations
 
@@ -13,6 +13,10 @@ from typing import Any
 
 
 PRE_BUILD_INVOCATION = re.compile(r"\A\s*\$craft:(?:plan|spec)(?=\s|$)")
+DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
+DISTILL_COMMAND_SHAPE = re.compile(
+    r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
+)
 # ponytail: replace prompt grammar when both hosts expose a structured action ID.
 IMPLEMENTATION_INVOCATION = re.compile(
     r"\s*\$craft:(?:"
@@ -25,6 +29,9 @@ IMPLEMENTATION_INVOCATION = re.compile(
 IMPLEMENTATION_COMMANDS = {"$craft:build", "$craft:full-loop"}
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
+INVALID_DISTILL_SCOPE_REASON = (
+    "INVALID_SCOPE: use $craft:distill or $craft:destill without arguments."
+)
 INVALID_IMPLEMENTATION_SCOPE_REASON = (
     "INVALID_SCOPE: use a canonical $craft:build or $craft:full-loop invocation."
 )
@@ -112,6 +119,8 @@ def _first_token(prompt: str) -> str:
 
 
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
+    """Route exact Craft phases so semantic work cannot imply Build approval."""
+
     if event.get("hook_event_name") == "SessionEnd":
         _remove(_state_path(event))
         return None
@@ -142,7 +151,14 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             "reason": INVALID_IMPLEMENTATION_SCOPE_REASON,
         }
 
-    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None
+    distill = DISTILL_INVOCATION.fullmatch(prompt) is not None
+    if DISTILL_COMMAND_SHAPE.search(prompt) is not None and not distill:
+        return {
+            "decision": "block",
+            "reason": INVALID_DISTILL_SCOPE_REASON,
+        }
+
+    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None or distill
     implement_plan = _normalized(prompt) in IMPLEMENT_PLAN_PROMPTS
     if not (pre_build or implementation or implement_plan):
         return None
@@ -160,8 +176,9 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
                     "hookEventName": "UserPromptSubmit",
                     "additionalContext": (
                         "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
-                        "$craft:spec may edit SPEC.md only. Neither authorizes or "
-                        "continues into Build."
+                        "$craft:spec may edit SPEC.md only; $craft:distill and "
+                        "$craft:destill may rewrite SPEC.md only after a confirmed "
+                        "preview. None authorizes or continues into Build."
                     ),
                 }
             }
@@ -174,10 +191,11 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             return {
                 "decision": "block",
                 "reason": (
-                    "Craft Plan and Spec do not authorize implementation; 'Implement "
-                    "plan' is not Build approval. Invoke $craft:plan to continue "
-                    "discovery, $craft:spec to encode the accepted brief, or explicitly "
-                    "invoke $craft:build or $craft:full-loop to implement code."
+                    "Craft Plan, Spec, and Distill do not authorize implementation; "
+                    "'Implement plan' is not Build approval. Invoke $craft:plan to "
+                    "continue discovery, $craft:spec to encode the accepted brief, "
+                    "$craft:distill to continue compaction, or explicitly invoke "
+                    "$craft:build or $craft:full-loop to implement code."
                 ),
             }
     except Exception:

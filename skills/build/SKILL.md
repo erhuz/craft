@@ -65,8 +65,8 @@ uncommitted. Reconcile that slice first.
 Trace the task through current callers and state ownership. Produce the smallest
 executable plan that names:
 
-- selected task and applicable `§V` invariants;
-- touched `§I` interfaces;
+- exact Build command selector, selected goal, and applicable invariant text;
+- touched interface contracts by domain meaning;
 - exact files expected to change;
 - one smallest regression or behavior check per non-trivial rule;
 - focused and final verification commands.
@@ -74,6 +74,23 @@ executable plan that names:
 The explicit Build invocation, or a task delegated by an explicit Full Loop
 invocation, authorizes this scoped plan. Pause only for a new product decision,
 external side effect, missing permission, or meaningful scope expansion.
+
+## Implementation artifact contract
+
+Use domain meaning rather than volatile ledger labels throughout implementation:
+
+- Actual SPEC identifiers may appear only inside `SPEC.md` and exact Craft
+  command selectors. Never copy them into source, comments, docstrings, tests,
+  test names, snapshots, fixtures, documentation, configuration, runtime output,
+  commit messages, or handoff prose.
+- Identify the selected task in working output only through its exact Build
+  command selector. Describe its goal, invariants, and interfaces by content,
+  without standalone ledger labels.
+- Give every authored or materially changed non-generated function, including
+  test functions, a language-appropriate comment or docstring explaining its
+  intended use and why it exists. Generated and vendored functions are exempt;
+  Build still introduces no SPEC identifiers into them.
+- Review the task diff for this contract before running final gates.
 
 ## Git ownership gate
 
@@ -105,9 +122,9 @@ For each selected task:
    unchanged. Verify all unrelated baseline worktree bytes and index entries
    remain unchanged after commit.
 
-Feature commit: `T<n>: <goal>` with relevant `V<n>` references in the body when
-useful. A Backprop fix commits spec, test, and code together as
-`backprop B<n> + V<n>: <cause>`; omit `+ V<n>` when no invariant was added.
+Feature commit: `build: <goal>`. A Backprop fix commits spec, test, and code
+together as `fix: <root cause>`. Keep the subject and body free of ledger
+identifiers.
 
 ## Full Loop handoff
 
@@ -116,9 +133,10 @@ Loop, split ownership into review and finalization:
 
 1. In review mode, perform Execute steps 1–4, leave the task `~`, and do not
    stage or commit.
-2. Return `BUILD_READY` with the task ID, baseline `HEAD`, applicable `§V` and
-   `§I` references, exact task-owned paths and diff, and focused plus final gate
-   commands and results.
+2. Return `BUILD_READY` with the exact delegated Build command selector,
+   selected goal and applicable contract text without ledger labels, baseline
+   `HEAD`, exact task-owned paths and diff, and focused plus final gate commands
+   and results.
 3. If Full Loop returns review findings, classify them through Failure routing,
    repair only the authorized task slice, rerun its gates, and return a fresh
    `BUILD_READY`. Any code, test, interface, or semantic spec edit invalidates
