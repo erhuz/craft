@@ -13,19 +13,35 @@ description: >
 Implement one approved SPEC task at a time. Own code and verification; do not
 own semantic spec content.
 
+## Parse scope
+
+1. Parse the invocation before repository inspection. Accept only:
+   - `$craft:build` or `$craft:build --next`;
+   - `$craft:build --all`;
+   - `$craft:build T<n>` with exactly one task ID.
+2. Treat no selector as `--next`.
+3. Reject mixed selectors, multiple task IDs, duplicate flags, and unknown
+   arguments as `INVALID_SCOPE`, then stop without repository inspection or
+   writes.
+
 ## Load
 
 1. Resolve the current Git root. If none exists, use the current directory.
 2. Read only `<root>/SPEC.md`. If absent, return `SPEC_MISSING` and stop: no
    edits, tests, speculation, or commit.
-3. Read local instructions, `FORMAT.md` when present, and the contracts in
+3. For an explicit `T<n>`, inspect only its ledger row:
+   - absent ID → return `TASK_NOT_FOUND` and stop;
+   - `x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop.
+4. Read local instructions, `FORMAT.md` when present, and the contracts in
    `../ponytail/SKILL.md` and `../caveman/SKILL.md`.
-4. Inspect git status before selecting work. Preserve unrelated user changes.
+5. Inspect git status before selecting work. Preserve unrelated user changes.
 
 ## Select
 
-- `<task-id>`: select that task only.
-- No argument: treat as `--next`.
+- Explicit `T<n>`:
+  1. Select `.` only when no known current task blocks new work.
+  2. Resume `~` only when this worktree provably owns it; otherwise return
+     `TASK_OWNERSHIP_AMBIGUOUS` and stop before planning or mutation.
 - `--next`, in order:
   1. If exactly one `~` task is provably owned by this worktree, resume it
      before any `.` task.
@@ -35,6 +51,11 @@ own semantic spec content.
   4. If no `.` or `~` task exists, strict no-op. Report it and stop.
 - `--all`: process open tasks in order, committing each verified task before
   starting the next.
+
+`INVALID_SCOPE`, `TASK_NOT_FOUND`, and `TASK_ALREADY_COMPLETE` exit before code
+inspection, tests, Git-status inspection, or mutation. `TASK_OWNERSHIP_AMBIGUOUS`
+may follow read-only Git ownership inspection but stops before planning or
+mutation.
 
 Do not begin a new task while known current-task changes remain unstaged or
 uncommitted. Reconcile that slice first.

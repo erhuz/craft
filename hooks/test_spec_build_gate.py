@@ -141,6 +141,44 @@ class CraftPromptRouterTest(unittest.TestCase):
                         else:
                             self.assertEqual(output["decision"], "block")
 
+    def test_invalid_command_shaped_implementation_invocations_block(self) -> None:
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-invalid-scope",
+            "turn_id": "turn-invalid-scope",
+            "cwd": "/tmp",
+        }
+        prompts = (
+            "$craft:build T1 T2",
+            "$craft:build --next --all",
+            "$craft:build --unknown",
+            "$craft:full-loop --max 2",
+            "$craft:full-loop T1 --all",
+        )
+
+        with patch.dict(os.environ, {}, clear=True):
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    output = spec_build_gate.handle({**event, "prompt": prompt})
+                    self.assertEqual(output["decision"], "block")
+                    self.assertEqual(
+                        output["reason"],
+                        spec_build_gate.INVALID_IMPLEMENTATION_SCOPE_REASON,
+                    )
+
+        with tempfile.TemporaryDirectory() as data_directory:
+            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:spec amend V8"}
+                )
+                spec_build_gate.handle(
+                    {**event, "prompt": "$craft:build T1 T2"}
+                )
+                blocked = spec_build_gate.handle(
+                    {**event, "prompt": "Implement plan"}
+                )
+                self.assertEqual(blocked["decision"], "block")
+
     def test_phase_state_failures_block_only_stateful_prompts(self) -> None:
         event = {
             "hook_event_name": "UserPromptSubmit",
@@ -221,6 +259,45 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_build_validates_scope_and_task_state_before_work(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        parse = " ".join(
+            skill.partition("## Parse scope")[2].partition("\n## ")[0].split()
+        )
+        load = " ".join(skill.partition("## Load")[2].partition("\n## ")[0].split())
+        select = " ".join(
+            skill.partition("## Select")[2].partition("\n## ")[0].split()
+        )
+
+        accepted = (
+            "`$craft:build` or `$craft:build --next`",
+            "`$craft:build --all`",
+            "`$craft:build T<n>` with exactly one task ID",
+        )
+        for invocation in accepted:
+            with self.subTest(invocation=invocation):
+                self.assertIn(invocation, parse)
+        self.assertIn(
+            "Reject mixed selectors, multiple task IDs, duplicate flags, and "
+            "unknown arguments as `INVALID_SCOPE`",
+            parse,
+        )
+        self.assertIn("absent ID → return `TASK_NOT_FOUND` and stop", load)
+        self.assertIn(
+            "`x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop",
+            load,
+        )
+        self.assertIn(
+            "otherwise return `TASK_OWNERSHIP_AMBIGUOUS` and stop before "
+            "planning or mutation",
+            select,
+        )
+        self.assertLess(load.index("TASK_NOT_FOUND"), load.index("Read local"))
+        self.assertLess(
+            load.index("TASK_ALREADY_COMPLETE"), load.index("Read local")
+        )
+
     def test_check_reconciles_current_truth_sections_only(self) -> None:
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "check" / "SKILL.md").read_text()

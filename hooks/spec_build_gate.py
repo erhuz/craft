@@ -24,8 +24,12 @@ IMPLEMENTATION_INVOCATION = re.compile(
     r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
     r")\s*"
 )
+IMPLEMENTATION_COMMANDS = {"$craft:build", "$craft:full-loop"}
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
+INVALID_IMPLEMENTATION_SCOPE_REASON = (
+    "INVALID_SCOPE: use a canonical $craft:build or $craft:full-loop invocation."
+)
 PHASE_STATE_FAILURE_REASON = (
     "Craft phase state is unavailable; Build authorization cannot be verified."
 )
@@ -104,6 +108,11 @@ def _normalized(prompt: str) -> str:
     return " ".join(prompt.casefold().strip().rstrip(".!?").split())
 
 
+def _first_token(prompt: str) -> str:
+    stripped = prompt.strip()
+    return stripped.split(maxsplit=1)[0] if stripped else ""
+
+
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
     if event.get("hook_event_name") == "SessionEnd":
         _remove(_state_path(event))
@@ -128,8 +137,14 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             }
         }
 
-    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None
     implementation = IMPLEMENTATION_INVOCATION.fullmatch(prompt) is not None
+    if _first_token(prompt) in IMPLEMENTATION_COMMANDS and not implementation:
+        return {
+            "decision": "block",
+            "reason": INVALID_IMPLEMENTATION_SCOPE_REASON,
+        }
+
+    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None
     implement_plan = _normalized(prompt) in IMPLEMENT_PLAN_PROMPTS
     if not (pre_build or implementation or implement_plan):
         return None
