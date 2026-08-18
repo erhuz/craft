@@ -211,10 +211,17 @@ class CraftPromptRouterTest(unittest.TestCase):
                 self.assertEqual(blocked["decision"], "block")
 
     def test_only_canonical_implementation_invocations_unlock(self) -> None:
+        """Unlock the phase gate for every accepted implementation grammar."""
+
         prompts = (
             ("$craft:build", True),
             ("$craft:build --all", True),
             ("$craft:build T2", True),
+            ("$craft:build --children", True),
+            ("$craft:build --children --next", True),
+            ("$craft:build --next --children", True),
+            ("$craft:build --children --all", True),
+            ("$craft:build --all --children", True),
             ("$craft:full-loop", True),
             ("$craft:full-loop T2 T3 --loop --max 2", True),
             ('"$craft:build --next"', False),
@@ -246,6 +253,8 @@ class CraftPromptRouterTest(unittest.TestCase):
                             self.assertEqual(output["decision"], "block")
 
     def test_invalid_command_shaped_implementation_invocations_block(self) -> None:
+        """Fail closed on malformed Build and Full Loop command shapes."""
+
         event = {
             "hook_event_name": "UserPromptSubmit",
             "session_id": "session-invalid-scope",
@@ -255,6 +264,10 @@ class CraftPromptRouterTest(unittest.TestCase):
         prompts = (
             "$craft:build T1 T2",
             "$craft:build --next --all",
+            "$craft:build --children T1",
+            "$craft:build T1 --children",
+            "$craft:build --children --children",
+            "$craft:build --children --next --all",
             "$craft:build --unknown",
             "$craft:full-loop --max 2",
             "$craft:full-loop T1 --all",
@@ -269,6 +282,7 @@ class CraftPromptRouterTest(unittest.TestCase):
                         output["reason"],
                         spec_build_gate.INVALID_IMPLEMENTATION_SCOPE_REASON,
                     )
+                    self.assertIn("$craft:build --children", output["reason"])
 
         with tempfile.TemporaryDirectory() as data_directory:
             with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
@@ -421,6 +435,8 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 class CraftSkillPolicyTest(unittest.TestCase):
     def test_build_validates_scope_and_task_state_before_work(self) -> None:
+        """Keep Build's early scope and ledger-state guards explicit."""
+
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "build" / "SKILL.md").read_text()
         parse = " ".join(
@@ -435,15 +451,26 @@ class CraftSkillPolicyTest(unittest.TestCase):
             "`$craft:build` or `$craft:build --next`",
             "`$craft:build --all`",
             "`$craft:build T<n>` with exactly one task ID",
+            "`$craft:build --children`, optionally combined with exactly one "
+            "`--next` or `--all` in either order",
         )
         for invocation in accepted:
             with self.subTest(invocation=invocation):
                 self.assertIn(invocation, parse)
         self.assertIn(
-            "Reject mixed selectors, multiple task IDs, duplicate flags, and "
-            "unknown arguments as `INVALID_SCOPE`",
+            "Reject mixed selectors, a task ID with `--children`, multiple task "
+            "IDs, duplicate flags, and unknown arguments as `INVALID_SCOPE`",
             parse,
         )
+        self.assertIn(
+            "inventory only real immediate child directories containing "
+            "`SPEC.md`",
+            load,
+        )
+        self.assertIn(
+            "Preflight task selection in every child before mutation", select
+        )
+        self.assertIn("process children in lexical order", select)
         self.assertIn("absent ID → return `TASK_NOT_FOUND` and stop", load)
         self.assertIn(
             "`x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop",

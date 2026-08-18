@@ -1,11 +1,12 @@
 ---
 name: build
 description: >
-  Plan and implement tasks from the repository-root SPEC.md in one native,
-  single-thread loop. Use when explicitly invoked as $craft:build, usually with
-  --next, --all, or a task ID, or when delegated by $craft:full-loop. Own code,
-  tests, verification, task status, exact staging, and the task commit. Route
-  semantic spec failures through $craft:backprop and $craft:spec.
+  Plan and implement tasks from one repository-root SPEC.md, or from immediate
+  child project ledgers with explicit --children, in one native single-thread
+  loop. Use when explicitly invoked as $craft:build, usually with --next,
+  --all, --children, or a task ID, or when delegated by $craft:full-loop. Own
+  code, tests, verification, task status, exact staging, and the task commit.
+  Route semantic spec failures through $craft:backprop and $craft:spec.
 ---
 
 # Build
@@ -18,23 +19,35 @@ own semantic spec content.
 1. Parse the invocation before repository inspection. Accept only:
    - `$craft:build` or `$craft:build --next`;
    - `$craft:build --all`;
-   - `$craft:build T<n>` with exactly one task ID.
+   - `$craft:build T<n>` with exactly one task ID;
+   - `$craft:build --children`, optionally combined with exactly one `--next`
+     or `--all` in either order.
 2. Treat no selector as `--next`.
-3. Reject mixed selectors, multiple task IDs, duplicate flags, and unknown
-   arguments as `INVALID_SCOPE`, then stop without repository inspection or
-   writes.
+3. Treat bare `--children` as `--next` independently for every child ledger.
+4. Reject mixed selectors, a task ID with `--children`, multiple task IDs,
+   duplicate flags, and unknown arguments as `INVALID_SCOPE`, then stop without
+   repository inspection or writes.
 
 ## Load
 
-1. Resolve the current Git root. If none exists, use the current directory.
-2. Read only `<root>/SPEC.md`. If absent, return `SPEC_MISSING` and stop: no
-   edits, tests, speculation, or commit.
+1. Without `--children`, resolve the current Git root. If none exists, use the
+   current directory. Read only `<root>/SPEC.md`. If absent, return
+   `SPEC_MISSING` and stop: no edits, tests, speculation, or commit.
+2. With `--children`, use the invocation directory as the aggregate root:
+   - inventory only real immediate child directories containing `SPEC.md`;
+   - do not follow symlinks, include the aggregate root's own ledger, or recurse;
+   - sort child paths lexically for deterministic execution;
+   - if none exist, return `SPEC_MISSING` as a strict no-op;
+   - treat each child directory as its ledger root, resolving its containing Git
+     root separately only for ownership, staging, and commit operations.
 3. For an explicit `T<n>`, inspect only its ledger row:
    - absent ID → return `TASK_NOT_FOUND` and stop;
    - `x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop.
-4. Read local instructions, `FORMAT.md` when present, and the contracts in
-   `../ponytail/SKILL.md` and `../caveman/SKILL.md`.
-5. Inspect git status before selecting work. Preserve unrelated user changes.
+4. Read local instructions and `FORMAT.md` for every selected ledger when
+   present, plus the contracts in `../ponytail/SKILL.md` and
+   `../caveman/SKILL.md`.
+5. Inspect Git status for the selected root, or for every candidate child,
+   before selecting work. Preserve unrelated user changes.
 
 ## Select
 
@@ -51,6 +64,11 @@ own semantic spec content.
   4. If no `.` or `~` task exists, strict no-op. Report it and stop.
 - `--all`: process open tasks in order, committing each verified task before
   starting the next.
+- `--children`: apply its default/explicit selector independently to every
+  inventoried child. Preflight task selection in every child before mutation;
+  any ambiguous or multiple `~` state stops the aggregate invocation. After a
+  clean preflight, process children in lexical order. A child with no `.` or `~`
+  task is a per-child strict no-op and does not stop later children.
 
 `INVALID_SCOPE`, `TASK_NOT_FOUND`, and `TASK_ALREADY_COMPLETE` exit before code
 inspection, tests, Git-status inspection, or mutation. `TASK_OWNERSHIP_AMBIGUOUS`
@@ -127,6 +145,11 @@ For each selected task:
    unchanged. Verify all unrelated baseline worktree bytes and index entries
    remain unchanged after commit.
 
+In `--children` mode, finish this entire flow and its task commit before moving
+to the next task or child. Stop on the first blocker or failed verification,
+report completed, blocked, and untouched children, and do not roll back commits
+already completed by this invocation.
+
 Feature commit: `build: <goal>`. A Backprop fix commits spec, test, and code
 together as `fix: <root cause>`. Keep the subject and body free of ledger
 identifiers.
@@ -190,5 +213,6 @@ exact clean Audit and Check results supplied by that coordinator.
 - Only task status cells may be changed directly in `SPEC.md`; all semantic
   changes go through `$craft:spec`.
 - No sub-agents, parallel workers, progress dashboards, or speculative work.
-- Never widen into sibling repositories, services, deployments, or provider
-  state without explicit scope.
+- `--children` is explicit scope only for the inventoried immediate child
+  ledgers. Never widen beyond them into other siblings, services, deployments,
+  or provider state.

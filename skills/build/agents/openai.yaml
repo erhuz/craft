@@ -1,6 +1,6 @@
 interface:
   display_name: "Build"
-  short_description: "Implement and commit one verified spec task"
+  short_description: "Build verified tasks in root or child specs"
   default_prompt: "$craft:build --next"
 policy:
   allow_implicit_invocation: false

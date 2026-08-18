@@ -22,7 +22,11 @@ DISTILL_COMMAND_SHAPE = re.compile(
 # ponytail: replace prompt grammar when both hosts expose a structured action ID.
 IMPLEMENTATION_INVOCATION = re.compile(
     r"\s*\$craft:(?:"
-    r"build(?:\s+(?:--next|--all|T[1-9]\d*))?"
+    r"build(?:\s+(?:"
+    r"--next|--all|T[1-9]\d*"
+    r"|--children(?:\s+(?:--next|--all))?"
+    r"|(?:--next|--all)\s+--children"
+    r"))?"
     r"|full-loop"
     r"(?:\s+(?:--next|--all|T[1-9]\d*(?:\s+T[1-9]\d*)*))?"
     r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
@@ -36,7 +40,9 @@ INVALID_DISTILL_SCOPE_REASON = (
     "$craft:distill --promote, or $craft:destill."
 )
 INVALID_IMPLEMENTATION_SCOPE_REASON = (
-    "INVALID_SCOPE: use a canonical $craft:build or $craft:full-loop invocation."
+    "INVALID_SCOPE: use $craft:build [--next|--all|T<n>], "
+    "$craft:build --children [--next|--all], or a canonical $craft:full-loop "
+    "invocation."
 )
 PHASE_STATE_FAILURE_REASON = (
     "Craft phase state is unavailable; Build authorization cannot be verified."
