@@ -101,5 +101,9 @@ not edit code or commit.
   `$craft:distill`.
 - No sub-agents, dashboards, auxiliary state, or speculative scaffolding.
 - Preserve exact paths, identifiers, commands, and code tokens.
+- Never encode human-only actions as task requirements or completion gates;
+  record them only as non-blocking operator follow-up. Soaking or elapsed
+  waiting is outside the lifecycle and forbidden unless the operator explicitly
+  approves it for the specific task.
 - A clean result is a focused diff, `SPEC_MISSING`, or `FORMAT_MISSING`; never
   silently no-op.
