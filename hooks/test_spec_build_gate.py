@@ -210,23 +210,24 @@ class CraftPromptRouterTest(unittest.TestCase):
                 )
                 self.assertEqual(blocked["decision"], "block")
 
-    def test_only_canonical_implementation_invocations_unlock(self) -> None:
-        """Unlock the phase gate for every accepted implementation grammar."""
+    def test_explicit_build_tail_and_canonical_full_loop_unlock(self) -> None:
+        """Accept any exact Build tail while keeping phase activation explicit."""
 
         prompts = (
             ("$craft:build", True),
             ("$craft:build --all", True),
             ("$craft:build T2", True),
-            ("$craft:build --children", True),
-            ("$craft:build --children --next", True),
-            ("$craft:build --next --children", True),
-            ("$craft:build --children --all", True),
-            ("$craft:build --all --children", True),
+            ("$craft:build T1 T2", True),
+            ("$craft:build --next --all", True),
+            ("$craft:build pim portal-manager emil", True),
+            ("$craft:build --unknown", True),
+            ("$craft:build\nportal-manager\npim", True),
             ("$craft:full-loop", True),
             ("$craft:full-loop T2 T3 --loop --max 2", True),
             ('"$craft:build --next"', False),
             ("Use $craft:build --next to implement the next task.", False),
             ("Do not run $craft:full-loop --next --loop.", False),
+            ("$craft:build.", False),
         )
 
         with tempfile.TemporaryDirectory() as data_directory:
@@ -252,25 +253,19 @@ class CraftPromptRouterTest(unittest.TestCase):
                         else:
                             self.assertEqual(output["decision"], "block")
 
-    def test_invalid_command_shaped_implementation_invocations_block(self) -> None:
-        """Fail closed on malformed Build and Full Loop command shapes."""
+    def test_invalid_full_loop_invocations_block(self) -> None:
+        """Keep Full Loop's coordinator grammar strict without limiting Build."""
 
         event = {
             "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-invalid-scope",
-            "turn_id": "turn-invalid-scope",
+            "session_id": "session-invalid-full-loop",
+            "turn_id": "turn-invalid-full-loop",
             "cwd": "/tmp",
         }
         prompts = (
-            "$craft:build T1 T2",
-            "$craft:build --next --all",
-            "$craft:build --children T1",
-            "$craft:build T1 --children",
-            "$craft:build --children --children",
-            "$craft:build --children --next --all",
-            "$craft:build --unknown",
             "$craft:full-loop --max 2",
             "$craft:full-loop T1 --all",
+            "$craft:full-loop --unknown",
         )
 
         with patch.dict(os.environ, {}, clear=True):
@@ -280,9 +275,8 @@ class CraftPromptRouterTest(unittest.TestCase):
                     self.assertEqual(output["decision"], "block")
                     self.assertEqual(
                         output["reason"],
-                        spec_build_gate.INVALID_IMPLEMENTATION_SCOPE_REASON,
+                        spec_build_gate.INVALID_FULL_LOOP_SCOPE_REASON,
                     )
-                    self.assertIn("$craft:build --children", output["reason"])
 
         with tempfile.TemporaryDirectory() as data_directory:
             with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
@@ -290,7 +284,7 @@ class CraftPromptRouterTest(unittest.TestCase):
                     {**event, "prompt": "$craft:spec amend V8"}
                 )
                 spec_build_gate.handle(
-                    {**event, "prompt": "$craft:build T1 T2"}
+                    {**event, "prompt": "$craft:full-loop T1 --all"}
                 )
                 blocked = spec_build_gate.handle(
                     {**event, "prompt": "Implement plan"}
@@ -434,46 +428,48 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
-    def test_build_validates_scope_and_task_state_before_work(self) -> None:
-        """Keep Build's early scope and ledger-state guards explicit."""
+    def test_build_accepts_unrestricted_explicit_scope_before_work(self) -> None:
+        """Remove command-shape rejection while retaining ownership guards."""
 
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "build" / "SKILL.md").read_text()
-        parse = " ".join(
-            skill.partition("## Parse scope")[2].partition("\n## ")[0].split()
+        interpret = " ".join(
+            skill.partition("## Interpret request")[2]
+            .partition("\n## ")[0]
+            .split()
         )
         load = " ".join(skill.partition("## Load")[2].partition("\n## ")[0].split())
         select = " ".join(
             skill.partition("## Select")[2].partition("\n## ")[0].split()
         )
 
-        accepted = (
-            "`$craft:build` or `$craft:build --next`",
-            "`$craft:build --all`",
-            "`$craft:build T<n>` with exactly one task ID",
-            "`$craft:build --children`, optionally combined with exactly one "
-            "`--next` or `--all` in either order",
-        )
-        for invocation in accepted:
-            with self.subTest(invocation=invocation):
-                self.assertIn(invocation, parse)
         self.assertIn(
-            "Reject mixed selectors, a task ID with `--children`, multiple task "
-            "IDs, duplicate flags, and unknown arguments as `INVALID_SCOPE`",
-            parse,
+            "Treat exact first token `$craft:build` as implementation "
+            "authorization",
+            interpret,
         )
         self.assertIn(
-            "inventory only real immediate child directories containing "
-            "`SPEC.md`",
+            "Do not apply an argument whitelist or reject multiple IDs, "
+            "selectors, paths, ledgers, or unfamiliar flags solely because of "
+            "command shape",
+            interpret,
+        )
+        self.assertIn("one invocation may span multiple ledgers", interpret)
+        self.assertNotIn("INVALID_SCOPE", skill)
+        self.assertIn(
+            "explicit `SPEC.md`, file, or directory targets",
             load,
         )
+        self.assertIn("Normalize real paths, deduplicate ledgers", load)
         self.assertIn(
-            "Preflight task selection in every child before mutation", select
+            "Explicit task IDs: accept one or more, preflight all of them",
+            select,
         )
-        self.assertIn("process children in lexical order", select)
+        self.assertIn("Preflight the full ledger/task mapping", select)
         self.assertIn("absent ID → return `TASK_NOT_FOUND` and stop", load)
         self.assertIn(
-            "`x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop",
+            "`x` → report `TASK_ALREADY_COMPLETE` as a per-task strict no-op "
+            "and continue preflighting other requested tasks",
             load,
         )
         self.assertIn(

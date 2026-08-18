@@ -19,30 +19,23 @@ DISTILL_INVOCATION = re.compile(
 DISTILL_COMMAND_SHAPE = re.compile(
     r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
 )
-# ponytail: replace prompt grammar when both hosts expose a structured action ID.
+# ponytail: replace prompt routing when both hosts expose a structured action ID.
 IMPLEMENTATION_INVOCATION = re.compile(
     r"\s*\$craft:(?:"
-    r"build(?:\s+(?:"
-    r"--next|--all|T[1-9]\d*"
-    r"|--children(?:\s+(?:--next|--all))?"
-    r"|(?:--next|--all)\s+--children"
-    r"))?"
+    r"build(?:\s+[\s\S]*)?"
     r"|full-loop"
     r"(?:\s+(?:--next|--all|T[1-9]\d*(?:\s+T[1-9]\d*)*))?"
     r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
     r")\s*"
 )
-IMPLEMENTATION_COMMANDS = {"$craft:build", "$craft:full-loop"}
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
     "INVALID_SCOPE: use $craft:distill, $craft:distill --candidate, "
     "$craft:distill --promote, or $craft:destill."
 )
-INVALID_IMPLEMENTATION_SCOPE_REASON = (
-    "INVALID_SCOPE: use $craft:build [--next|--all|T<n>], "
-    "$craft:build --children [--next|--all], or a canonical $craft:full-loop "
-    "invocation."
+INVALID_FULL_LOOP_SCOPE_REASON = (
+    "INVALID_SCOPE: use a canonical $craft:full-loop invocation."
 )
 PHASE_STATE_FAILURE_REASON = (
     "Craft phase state is unavailable; Build authorization cannot be verified."
@@ -154,10 +147,10 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
         }
 
     implementation = IMPLEMENTATION_INVOCATION.fullmatch(prompt) is not None
-    if _first_token(prompt) in IMPLEMENTATION_COMMANDS and not implementation:
+    if _first_token(prompt) == "$craft:full-loop" and not implementation:
         return {
             "decision": "block",
-            "reason": INVALID_IMPLEMENTATION_SCOPE_REASON,
+            "reason": INVALID_FULL_LOOP_SCOPE_REASON,
         }
 
     distill = DISTILL_INVOCATION.fullmatch(prompt) is not None

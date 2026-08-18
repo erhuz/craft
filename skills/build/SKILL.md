@@ -1,12 +1,12 @@
 ---
 name: build
 description: >
-  Plan and implement tasks from one repository-root SPEC.md, or from immediate
-  child project ledgers with explicit --children, in one native single-thread
-  loop. Use when explicitly invoked as $craft:build, usually with --next,
-  --all, --children, or a task ID, or when delegated by $craft:full-loop. Own
-  code, tests, verification, task status, exact staging, and the task commit.
-  Route semantic spec failures through $craft:backprop and $craft:spec.
+  Plan and implement explicitly requested tasks from one or more SPEC.md
+  ledgers in one native single-thread loop. Use when explicitly invoked as
+  $craft:build with any task, selector, path, ledger set, or natural-language
+  scope, or when delegated by $craft:full-loop. Own code, tests, verification,
+  task status, exact staging, and each task commit. Route semantic spec failures
+  through $craft:backprop and $craft:spec.
 ---
 
 # Build
@@ -14,47 +14,49 @@ description: >
 Implement one approved SPEC task at a time. Own code and verification; do not
 own semantic spec content.
 
-## Parse scope
+## Interpret request
 
-1. Parse the invocation before repository inspection. Accept only:
-   - `$craft:build` or `$craft:build --next`;
-   - `$craft:build --all`;
-   - `$craft:build T<n>` with exactly one task ID;
-   - `$craft:build --children`, optionally combined with exactly one `--next`
-     or `--all` in either order.
-2. Treat no selector as `--next`.
-3. Treat bare `--children` as `--next` independently for every child ledger.
-4. Reject mixed selectors, a task ID with `--children`, multiple task IDs,
-   duplicate flags, and unknown arguments as `INVALID_SCOPE`, then stop without
-   repository inspection or writes.
+1. Treat exact first token `$craft:build` as implementation authorization. Do
+   not apply an argument whitelist or reject multiple IDs, selectors, paths,
+   ledgers, or unfamiliar flags solely because of command shape.
+2. Treat the remaining prompt as the requested scope. Accept any explicit
+   combination that can be resolved to concrete ledgers and tasks; one
+   invocation may span multiple ledgers.
+3. Treat no remaining scope as `--next` in the current repository-root ledger.
+4. Resolve unclear wording through read-only inspection. If the requested
+   ledger/task mapping still has more than one materially different meaning,
+   state that exact ambiguity and ask one focused question before mutation.
 
 ## Load
 
-1. Without `--children`, resolve the current Git root. If none exists, use the
-   current directory. Read only `<root>/SPEC.md`. If absent, return
-   `SPEC_MISSING` and stop: no edits, tests, speculation, or commit.
-2. With `--children`, use the invocation directory as the aggregate root:
-   - inventory only real immediate child directories containing `SPEC.md`;
-   - do not follow symlinks, include the aggregate root's own ledger, or recurse;
-   - sort child paths lexically for deterministic execution;
-   - if none exist, return `SPEC_MISSING` as a strict no-op;
-   - treat each child directory as its ledger root, resolving its containing Git
-     root separately only for ownership, staging, and commit operations.
-3. For an explicit `T<n>`, inspect only its ledger row:
+1. Resolve every ledger named or described by the request:
+   - no explicit ledger target → current Git root, or current directory when
+     no Git root exists;
+   - explicit `SPEC.md`, file, or directory targets → those exact project
+     ledgers;
+   - a named child, descendant, or repository set → discover ledgers only
+     within that stated boundary.
+2. Normalize real paths, deduplicate ledgers, and sort them lexically. Resolve
+   each ledger's containing Git root separately for ownership and commits.
+3. Read every resolved `SPEC.md`. A requested target without one returns
+   `SPEC_MISSING` and stops the whole preflight before mutation.
+4. For every explicit task ID, inspect its ledger row:
    - absent ID → return `TASK_NOT_FOUND` and stop;
-   - `x` → return `TASK_ALREADY_COMPLETE` as a strict no-op and stop.
-4. Read local instructions and `FORMAT.md` for every selected ledger when
+   - `x` → report `TASK_ALREADY_COMPLETE` as a per-task strict no-op and
+     continue preflighting other requested tasks.
+5. Read local instructions and `FORMAT.md` for every selected ledger when
    present, plus the contracts in `../ponytail/SKILL.md` and
    `../caveman/SKILL.md`.
-5. Inspect Git status for the selected root, or for every candidate child,
-   before selecting work. Preserve unrelated user changes.
+6. Inspect Git status for every selected ledger before selecting work. Preserve
+   unrelated user changes.
 
 ## Select
 
-- Explicit `T<n>`:
-  1. Select `.` only when no known current task blocks new work.
-  2. Resume `~` only when this worktree provably owns it; otherwise return
-     `TASK_OWNERSHIP_AMBIGUOUS` and stop before planning or mutation.
+- Explicit task IDs: accept one or more, preflight all of them, and process each
+  ledger's selected tasks in ledger order. Select `.` only when no known current
+  task blocks new work. Resume `~` only when this worktree provably owns it;
+  otherwise return `TASK_OWNERSHIP_AMBIGUOUS` and stop before planning or
+  mutation.
 - `--next`, in order:
   1. If exactly one `~` task is provably owned by this worktree, resume it
      before any `.` task.
@@ -64,16 +66,13 @@ own semantic spec content.
   4. If no `.` or `~` task exists, strict no-op. Report it and stop.
 - `--all`: process open tasks in order, committing each verified task before
   starting the next.
-- `--children`: apply its default/explicit selector independently to every
-  inventoried child. Preflight task selection in every child before mutation;
-  any ambiguous or multiple `~` state stops the aggregate invocation. After a
-  clean preflight, process children in lexical order. A child with no `.` or `~`
-  task is a per-child strict no-op and does not stop later children.
+- Multiple ledgers or selector clauses: apply each requested selector to its
+  resolved target. Preflight the full ledger/task mapping before mutation, then
+  process ledgers lexically and tasks in ledger order.
 
-`INVALID_SCOPE`, `TASK_NOT_FOUND`, and `TASK_ALREADY_COMPLETE` exit before code
-inspection, tests, Git-status inspection, or mutation. `TASK_OWNERSHIP_AMBIGUOUS`
-may follow read-only Git ownership inspection but stops before planning or
-mutation.
+`TASK_NOT_FOUND` exits before code inspection, tests, Git-status handling, or
+mutation. `TASK_OWNERSHIP_AMBIGUOUS` may follow read-only Git ownership
+inspection but stops before planning or mutation.
 
 Do not begin a new task while known current-task changes remain unstaged or
 uncommitted. Reconcile that slice first.
@@ -145,10 +144,10 @@ For each selected task:
    unchanged. Verify all unrelated baseline worktree bytes and index entries
    remain unchanged after commit.
 
-In `--children` mode, finish this entire flow and its task commit before moving
-to the next task or child. Stop on the first blocker or failed verification,
-report completed, blocked, and untouched children, and do not roll back commits
-already completed by this invocation.
+When one invocation selects multiple tasks or ledgers, finish this entire flow
+and its task commit before moving to the next. Stop on the first blocker or
+failed verification, report completed, blocked, and untouched work, and do not
+roll back commits already completed by this invocation.
 
 Feature commit: `build: <goal>`. A Backprop fix commits spec, test, and code
 together as `fix: <root cause>`. Keep the subject and body free of ledger
@@ -213,6 +212,6 @@ exact clean Audit and Check results supplied by that coordinator.
 - Only task status cells may be changed directly in `SPEC.md`; all semantic
   changes go through `$craft:spec`.
 - No sub-agents, parallel workers, progress dashboards, or speculative work.
-- `--children` is explicit scope only for the inventoried immediate child
-  ledgers. Never widen beyond them into other siblings, services, deployments,
-  or provider state.
+- The explicit Build request defines ledger and task scope. Never widen beyond
+  its resolved targets into other repositories, services, deployments, or
+  provider state.
