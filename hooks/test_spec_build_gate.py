@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -429,7 +428,7 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 class CraftSkillPolicyTest(unittest.TestCase):
     def test_build_accepts_unrestricted_explicit_scope_before_work(self) -> None:
-        """Remove command-shape rejection while retaining ownership guards."""
+        """Remove command-shape and worktree-ownership rejection."""
 
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "build" / "SKILL.md").read_text()
@@ -473,8 +472,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
             load,
         )
         self.assertIn(
-            "otherwise return `TASK_OWNERSHIP_AMBIGUOUS` and stop before "
-            "planning or mutation",
+            "resume `~` from the current worktree state without requiring "
+            "ownership proof",
             select,
         )
         self.assertLess(load.index("TASK_NOT_FOUND"), load.index("Read local"))
@@ -582,62 +581,28 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertNotIn("Feature commit: `T<n>:", build)
         self.assertNotIn("commit: `backprop B<n>", backprop)
 
-    def test_build_stops_before_dirty_same_path_staging(self) -> None:
+    def test_build_continues_through_dirty_same_path_content(self) -> None:
         root = Path(__file__).resolve().parents[1]
-        with tempfile.TemporaryDirectory() as data_directory:
-            repository = Path(data_directory)
-
-            def git(*arguments: str) -> str:
-                return subprocess.run(
-                    ("git", *arguments),
-                    cwd=repository,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                ).stdout
-
-            git("init", "--quiet")
-            git("config", "user.name", "Craft Test")
-            git("config", "user.email", "craft@example.invalid")
-            shared = repository / "shared.txt"
-            shared.write_text("original-user\nstable\noriginal-task\n")
-            git("add", "--", "shared.txt")
-            git("commit", "--quiet", "-m", "baseline")
-
-            shared.write_text("user-owned\nstable\noriginal-task\n")
-            self.assertEqual(
-                git("status", "--short", "--", "shared.txt"),
-                " M shared.txt\n",
-            )
-            shared.write_text("user-owned\nstable\ntask-owned\n")
-            git("add", "--", "shared.txt")
-            staged = git("diff", "--cached", "--unified=0", "--", "shared.txt")
-            self.assertIn("+user-owned", staged)
-            self.assertIn("+task-owned", staged)
-
         skill = (root / "skills" / "build" / "SKILL.md").read_text()
-        gate = skill.partition("## Git ownership gate")[2].partition("\n## ")[0]
-        normalized = " ".join(gate.split())
+        baseline = skill.partition("## Git baseline")[2].partition("\n## ")[0]
+        normalized = " ".join(baseline.split())
         self.assertIn(
-            "If any intended path has pre-existing staged, unstaged, or "
-            "untracked content not provably owned by this task, return "
-            "`TASK_PATH_OVERLAP` and stop before mutation.",
+            "Continue from current staged, unstaged, and untracked content "
+            "without requiring task-ownership proof.",
             normalized,
         )
-        self.assertIn("Separate hunks do not make a shared path safe.", normalized)
+        self.assertIn(
+            "preserve and include the path as it stands instead of blocking",
+            normalized,
+        )
 
     def test_build_and_full_loop_share_next_task_precedence(self) -> None:
         root = Path(__file__).resolve().parents[1]
         cases = (
             (
-                "owned_resumable",
-                "If exactly one `~` task is provably owned by this worktree, "
-                "resume it before any `.` task.",
-            ),
-            (
-                "ambiguous_resumable",
-                "If multiple `~` tasks exist or any `~` task's ownership is "
-                "ambiguous, stop before mutation.",
+                "resumable",
+                "If any `~` tasks exist, resume the lowest-numbered one before "
+                "any `.` task.",
             ),
             ("new_task", "Otherwise, select the lowest-numbered `.` task."),
             ("closed", "If no `.` or `~` task exists, strict no-op."),

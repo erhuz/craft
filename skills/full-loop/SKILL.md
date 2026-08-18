@@ -41,20 +41,18 @@ actions, or other external side effects.
 ## Select tasks
 
 - `--next`, in order:
-  1. If exactly one `~` task is provably owned by this worktree, resume it
-     before any `.` task.
-  2. If multiple `~` tasks exist or any `~` task's ownership is ambiguous,
-     stop before mutation.
-  3. Otherwise, select the lowest-numbered `.` task.
-  4. If no `.` or `~` task exists, strict no-op. Return `NO_OPEN_TASKS`.
+  1. If any `~` tasks exist, resume the lowest-numbered one before any `.` task.
+  2. Otherwise, select the lowest-numbered `.` task.
+  3. If no `.` or `~` task exists, strict no-op. Return `NO_OPEN_TASKS`.
 - Explicit IDs: before any mutation, require every ID to exist and have `.` or
   `~` status. Process the unique tasks in ledger order, not argument order.
-- `--all`: snapshot the initially open `.` and resumable `~` tasks in ledger
-  order. Tasks added later are outside this invocation.
+- `--all`: snapshot every initially open `.` and `~` task in ledger order.
+  Tasks added later are outside this invocation.
 
 Do not start a new task while a prior selected task has uncommitted changes.
-Stop before mutation when pre-existing changes overlap a selected task or make
-ownership unsafe to establish. Unrelated dirty paths may remain throughout.
+Continue selected tasks from current worktree content without requiring
+ownership attribution or blocking on existing content in selected paths.
+Unrelated dirty paths may remain throughout.
 
 With `--loop`, default `--max` to `1`. `N` counts returns to Build after the
 initial review, not review passes, and resets for each selected task.

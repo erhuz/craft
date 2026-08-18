@@ -37,7 +37,7 @@ own semantic spec content.
    - a named child, descendant, or repository set → discover ledgers only
      within that stated boundary.
 2. Normalize real paths, deduplicate ledgers, and sort them lexically. Resolve
-   each ledger's containing Git root separately for ownership and commits.
+   each ledger's containing Git root separately for baselines and commits.
 3. Read every resolved `SPEC.md`. A requested target without one returns
    `SPEC_MISSING` and stops the whole preflight before mutation.
 4. For every explicit task ID, inspect its ledger row:
@@ -53,29 +53,23 @@ own semantic spec content.
 ## Select
 
 - Explicit task IDs: accept one or more, preflight all of them, and process each
-  ledger's selected tasks in ledger order. Select `.` only when no known current
-  task blocks new work. Resume `~` only when this worktree provably owns it;
-  otherwise return `TASK_OWNERSHIP_AMBIGUOUS` and stop before planning or
-  mutation.
+  ledger's selected tasks in ledger order. Select both `.` and `~`; resume `~`
+  from the current worktree state without requiring ownership proof.
 - `--next`, in order:
-  1. If exactly one `~` task is provably owned by this worktree, resume it
-     before any `.` task.
-  2. If multiple `~` tasks exist or any `~` task's ownership is ambiguous,
-     stop before mutation.
-  3. Otherwise, select the lowest-numbered `.` task.
-  4. If no `.` or `~` task exists, strict no-op. Report it and stop.
-- `--all`: process open tasks in order, committing each verified task before
-  starting the next.
+  1. If any `~` tasks exist, resume the lowest-numbered one before any `.` task.
+  2. Otherwise, select the lowest-numbered `.` task.
+  3. If no `.` or `~` task exists, strict no-op. Report it and stop.
+- `--all`: process every `~` and `.` task in ledger order, committing each
+  verified task before starting the next.
 - Multiple ledgers or selector clauses: apply each requested selector to its
   resolved target. Preflight the full ledger/task mapping before mutation, then
   process ledgers lexically and tasks in ledger order.
 
 `TASK_NOT_FOUND` exits before code inspection, tests, Git-status handling, or
-mutation. `TASK_OWNERSHIP_AMBIGUOUS` may follow read-only Git ownership
-inspection but stops before planning or mutation.
+mutation.
 
-Do not begin a new task while known current-task changes remain unstaged or
-uncommitted. Reconcile that slice first.
+Treat every selected `~` task and existing worktree change as resumable input.
+Never require attribution to an earlier session before continuing.
 
 ## Plan
 
@@ -114,17 +108,19 @@ Use domain meaning rather than volatile ledger labels throughout implementation:
   Build still introduces no SPEC identifiers into them.
 - Review the task diff for this contract before running final gates.
 
-## Git ownership gate
+## Git baseline
 
 After planning expected paths and before any mutation:
 
 1. Record baseline `HEAD` and exact index/worktree state.
-2. Treat `SPEC.md` plus every expected task file as intended task paths.
-3. If any intended path has pre-existing staged, unstaged, or untracked content
-   not provably owned by this task, return `TASK_PATH_OVERLAP` and stop before
-   mutation. Separate hunks do not make a shared path safe.
-4. Permit unrelated dirty paths only when their baseline worktree bytes and
-   index entries can be verified unchanged after the task commit.
+2. Continue from current staged, unstaged, and untracked content without
+   requiring task-ownership proof.
+3. Apply the smallest task change atop that state without resetting, stashing,
+   overwriting, or discarding pre-existing content.
+4. Stage Build-introduced changes separately when safe. If existing content in
+   a selected task path cannot be separated, preserve and include the path as it
+   stands instead of blocking. Keep unrelated paths' baseline worktree bytes and
+   index entries unchanged.
 
 ## Execute
 
@@ -137,12 +133,12 @@ For each selected task:
 4. Run the focused check, then the repository's required test, check, lint, or
    build gates in the task's scope.
 5. On success, change only the status cell from `~` to `x`.
-6. Review the final diff, stage only the task files plus `SPEC.md` beyond the
-   baseline index, run staged whitespace/name checks for those paths, and commit
-   exactly those task paths immediately. If unrelated changes were already
-   staged, use a path-limited commit and verify their index entries remain
-   unchanged. Verify all unrelated baseline worktree bytes and index entries
-   remain unchanged after commit.
+6. Review the final diff, stage the selected task files plus `SPEC.md` while
+   preserving their baseline content, run staged whitespace/name checks for
+   those paths, and commit exactly those paths immediately. If unrelated paths
+   were already staged, use a path-limited commit and verify their index entries
+   remain unchanged. Verify all unrelated baseline worktree bytes and index
+   entries remain unchanged after commit.
 
 When one invocation selects multiple tasks or ledgers, finish this entire flow
 and its task commit before moving to the next. Stop on the first blocker or
