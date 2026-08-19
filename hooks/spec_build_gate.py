@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-"""Render Craft's catalog and require explicit Build after semantic phases."""
+"""Render Craft's catalog and reject malformed Craft command shapes."""
 
 from __future__ import annotations
 
-import hashlib
 import json
-import os
 import re
 import sys
 from pathlib import Path
 from typing import Any
 
 
-PRE_BUILD_INVOCATION = re.compile(r"\A\s*\$craft:(?:plan|spec)(?=\s|$)")
 DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
 DISTILL_COMMAND_SHAPE = re.compile(
     r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
@@ -26,16 +23,12 @@ IMPLEMENTATION_INVOCATION = re.compile(
     r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
     r")\s*"
 )
-IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
     "INVALID_SCOPE: use $craft:distill or $craft:destill with no arguments."
 )
 INVALID_FULL_LOOP_SCOPE_REASON = (
     "INVALID_SCOPE: use a canonical $craft:full-loop invocation."
-)
-PHASE_STATE_FAILURE_REASON = (
-    "Craft phase state is unavailable; Build authorization cannot be verified."
 )
 
 
@@ -86,43 +79,20 @@ def render_catalog(root: Path) -> str:
     return "\n".join(lines)
 
 
-def _state_path(event: dict[str, Any]) -> Path | None:
-    data_root = os.environ.get("PLUGIN_DATA") or os.environ.get("CLAUDE_PLUGIN_DATA")
-    session_id = event.get("session_id")
-    if not data_root or not isinstance(session_id, str) or not session_id:
-        return None
-    key = hashlib.sha256(session_id.encode()).hexdigest()
-    return Path(data_root) / "spec-build-gate" / key
-
-
-def _remove(path: Path | None) -> None:
-    if path is not None:
-        path.unlink(missing_ok=True)
-
-
-def _state_exists(path: Path) -> bool:
-    try:
-        path.stat()
-    except FileNotFoundError:
-        return False
-    return True
-
-
-def _normalized(prompt: str) -> str:
-    return " ".join(prompt.casefold().strip().rstrip(".!?").split())
-
-
 def _first_token(prompt: str) -> str:
     stripped = prompt.strip()
     return stripped.split(maxsplit=1)[0] if stripped else ""
 
 
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
-    """Route exact Craft phases so semantic work cannot imply Build approval."""
+    """Render the catalog and reject a malformed Craft command shape.
 
-    if event.get("hook_event_name") == "SessionEnd":
-        _remove(_state_path(event))
-        return None
+    Routing is this hook's whole job. Authorization comes from the explicit
+    skill invocation itself, so no prompt phrase and no stored session state
+    may grant or withhold it, and an unusable host environment must never cost
+    the user their prompt.
+    """
+
     if event.get("hook_event_name") != "UserPromptSubmit":
         return None
 
@@ -143,66 +113,24 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
             }
         }
 
-    implementation = IMPLEMENTATION_INVOCATION.fullmatch(prompt) is not None
-    if _first_token(prompt) == "$craft:full-loop" and not implementation:
+    if (
+        _first_token(prompt) == "$craft:full-loop"
+        and IMPLEMENTATION_INVOCATION.fullmatch(prompt) is None
+    ):
         return {
             "decision": "block",
             "reason": INVALID_FULL_LOOP_SCOPE_REASON,
         }
 
-    distill = DISTILL_INVOCATION.fullmatch(prompt) is not None
-    if DISTILL_COMMAND_SHAPE.search(prompt) is not None and not distill:
+    if (
+        DISTILL_COMMAND_SHAPE.search(prompt) is not None
+        and DISTILL_INVOCATION.fullmatch(prompt) is None
+    ):
         return {
             "decision": "block",
             "reason": INVALID_DISTILL_SCOPE_REASON,
         }
 
-    pre_build = PRE_BUILD_INVOCATION.search(prompt) is not None or distill
-    implement_plan = _normalized(prompt) in IMPLEMENT_PLAN_PROMPTS
-    if not (pre_build or implementation or implement_plan):
-        return None
-
-    try:
-        path = _state_path(event)
-        if path is None:
-            raise RuntimeError("phase-state path is unavailable")
-
-        if pre_build:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.touch()
-            return {
-                "hookSpecificOutput": {
-                    "hookEventName": "UserPromptSubmit",
-                    "additionalContext": (
-                        "CRAFT PRE-BUILD GATE ACTIVE. $craft:plan is read-only; "
-                        "$craft:spec may edit SPEC.md only; $craft:distill and "
-                        "$craft:destill may materialize candidate or confirmed "
-                        "distill artifacts only after a confirmed preview. None "
-                        "authorizes or continues into Build."
-                    ),
-                }
-            }
-
-        if implementation:
-            _remove(path)
-            return None
-
-        if implement_plan and _state_exists(path):
-            return {
-                "decision": "block",
-                "reason": (
-                    "Craft Plan, Spec, and Distill do not authorize implementation; "
-                    "'Implement plan' is not Build approval. Invoke $craft:plan to "
-                    "continue discovery, $craft:spec to encode the accepted brief, "
-                    "$craft:distill to continue compaction, or explicitly invoke "
-                    "$craft:build or $craft:full-loop to implement code."
-                ),
-            }
-    except Exception:
-        return {
-            "decision": "block",
-            "reason": PHASE_STATE_FAILURE_REASON,
-        }
     return None
 
 

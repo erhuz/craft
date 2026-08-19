@@ -72,7 +72,7 @@ T12|x|Make Build code-comment language explicitly English-only & add contract pr
 T13|x|Make ledger IDs permanent: gaps on removal, no renumber, one confirmed Distill mode; drop candidate/promote, staging artifacts & the ID-reference scanner|V10,V11,V12,V13,V14,V15,I.distill-invocation,I.distill-rewrite
 T14|x|Self-correct accidental ledger references in the task diff before final verification & restate the artifact rationale for permanent identifiers|V16,V22,I.implementation-artifact
 T15|x|Reduce the sentinel vocabulary to the allowed set & replace exact-string review gates with judged clean results|V21,I.sentinel
-T16|.|Remove prompt-phrase gating & persisted phase state; never block a prompt on unavailable host plugin data|V2,V3,V9,I.prompt-hook
+T16|x|Remove prompt-phrase gating & persisted phase state; never block a prompt on unavailable host plugin data|V2,V3,V9,I.prompt-hook
 T17|.|Accept an unrestricted resolvable tail for Full Loop identically to Build|V8,I.build-request
 T18|.|Collapse Full Loop to one review pass per handoff & one fresh pass per authorized repair|V19,I.phase-authority
 T19|.|Merge Critique into Audit as the single decision-review skill & remove the Critique registration|V20,I.review

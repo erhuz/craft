@@ -1,5 +1,5 @@
 {
-  "description": "Load Ponytail, render Craft's catalog, and guard explicit Plan, Spec, Distill, and Build phases.",
+  "description": "Load Ponytail, render Craft's catalog, and reject malformed Craft command shapes.",
   "hooks": {
     "SessionStart": [
       {
@@ -11,17 +11,6 @@
             "timeout": 5,
             "statusMessage": "Loading Craft...",
             "additionalContextLimit": 3000
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/spec_build_gate.py\"",
-            "timeout": 3
           }
         ]
       }

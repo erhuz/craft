@@ -4,7 +4,6 @@ import json
 import os
 import re
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -60,116 +59,90 @@ class CraftPromptRouterTest(unittest.TestCase):
                 output = spec_build_gate.handle({**event, "prompt": prompt})
                 self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
 
-    def test_only_first_token_canonical_pre_build_invocations_activate(self) -> None:
-        """Activate the gate only for exact semantic-phase command grammar."""
+    def test_semantic_phase_prompts_pass_through_ungated(self) -> None:
+        """Leave Plan, Spec, and Distill prompts untouched.
 
+        Authorization lives in the explicit skill invocation, so the router
+        must inject no context and record no state for a semantic phase, in
+        any spelling. The state helpers are asserted absent so the gate cannot
+        return by accident.
+        """
+
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-semantic-phase",
+            "turn_id": "turn-semantic-phase",
+            "cwd": "/tmp",
+        }
         prompts = (
-            ("plan", "$craft:plan", True),
-            ("spec_args", "$craft:spec amend constraints", True),
-            ("distill", "$craft:distill", True),
-            ("destill_alias", "$craft:destill", True),
-            ("destill_trailing_space", "$craft:destill ", True),
-            ("multiline", "\n\t$craft:plan\nexplore order imports", True),
-            ("quoted", '"$craft:plan"', False),
-            ("quoted_alias", '"$craft:destill"', False),
-            ("embedded", "prefix$craft:spec suffix", False),
-            (
-                "explanatory",
-                "Use $craft:plan to research order imports.",
-                False,
-            ),
-            ("negated", "Do not run $craft:spec amend constraints", False),
-            ("punctuated", "$craft:plan.", False),
-            ("case_changed", "$Craft:spec amend constraints", False),
+            "$craft:plan",
+            "$craft:spec amend constraints",
+            "$craft:distill",
+            "$craft:destill",
+            "$craft:destill ",
+            "\n\t$craft:plan\nexplore order imports",
+            '"$craft:plan"',
+            "prefix$craft:spec suffix",
+            "Use $craft:plan to research order imports.",
+            "Do not run $craft:spec amend constraints",
+            "$craft:plan.",
+            "$Craft:spec amend constraints",
         )
 
-        with tempfile.TemporaryDirectory() as data_directory:
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                for index, (case, prompt, activates) in enumerate(prompts):
-                    with self.subTest(case=case, prompt=prompt):
-                        event = {
-                            "hook_event_name": "UserPromptSubmit",
-                            "session_id": f"session-pre-build-{index}",
-                            "turn_id": f"turn-pre-build-{index}",
-                            "cwd": data_directory,
-                        }
-                        output = spec_build_gate.handle(
-                            {**event, "prompt": prompt}
-                        )
-                        state = spec_build_gate._state_path(event)
+        with patch.dict(os.environ, {}, clear=True):
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    self.assertIsNone(
+                        spec_build_gate.handle({**event, "prompt": prompt})
+                    )
 
-                        self.assertIsNotNone(state)
-                        self.assertEqual(state.exists(), activates)
-                        if activates:
-                            self.assertIn("PRE-BUILD GATE ACTIVE", str(output))
-                        else:
-                            self.assertIsNone(output)
+        for removed in (
+            "_state_path",
+            "_remove",
+            "_state_exists",
+            "_normalized",
+            "PRE_BUILD_INVOCATION",
+            "IMPLEMENT_PLAN_PROMPTS",
+            "PHASE_STATE_FAILURE_REASON",
+        ):
+            with self.subTest(removed=removed):
+                self.assertFalse(hasattr(spec_build_gate, removed))
 
-    def test_implement_plan_requires_an_explicit_craft_phase(self) -> None:
-        """Keep natural-language implementation blocked after semantic work."""
+    def test_natural_language_implementation_is_never_blocked(self) -> None:
+        """Stop the router from vetoing ordinary English.
 
-        with tempfile.TemporaryDirectory() as data_directory:
-            event = {
-                "hook_event_name": "UserPromptSubmit",
-                "session_id": "session-1",
-                "turn_id": "turn-1",
-                "cwd": data_directory,
-            }
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                plan = spec_build_gate.handle(
-                    {**event, "prompt": "$craft:plan explore order imports"}
-                )
-                self.assertIn("$craft:plan is read-only", str(plan))
+        The old blocklist matched two exact phrases and let every synonym
+        through, so it rejected the wording a reader of a fresh plan is most
+        likely to type while catching nothing else.
+        """
 
-                blocked = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-                self.assertEqual(blocked["decision"], "block")
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-natural-language",
+            "turn_id": "turn-natural-language",
+            "cwd": "/tmp",
+        }
+        prompts = (
+            "Implement plan",
+            "Implement the plan",
+            "implement the plan.",
+            "implement it",
+            "go ahead",
+            "yes, build that",
+        )
 
-                spec = spec_build_gate.handle(
-                    {**event, "prompt": "$craft:spec amend V1"}
-                )
-                self.assertIn("$craft:spec may edit SPEC.md only", str(spec))
-
-                blocked = spec_build_gate.handle(
-                    {**event, "prompt": "Implement the plan"}
-                )
-                self.assertEqual(blocked["decision"], "block")
-
-                distill = spec_build_gate.handle(
-                    {**event, "prompt": "$craft:distill"}
-                )
-                self.assertIn("confirmed preview", str(distill))
-
-                blocked = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-                self.assertEqual(blocked["decision"], "block")
-
-                alias = spec_build_gate.handle(
-                    {**event, "prompt": "$craft:destill"}
-                )
-                self.assertIn("$craft:destill", str(alias))
-
-                spec_build_gate.handle({**event, "prompt": "$craft:build --next"})
-                allowed = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-                self.assertIsNone(allowed)
-
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:spec amend V2"}
-                )
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:full-loop --next --loop"}
-                )
-                allowed = spec_build_gate.handle(
-                    {**event, "prompt": "Implement the plan"}
-                )
-                self.assertIsNone(allowed)
+        with patch.dict(os.environ, {}, clear=True):
+            spec_build_gate.handle(
+                {**event, "prompt": "$craft:plan explore order imports"}
+            )
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    self.assertIsNone(
+                        spec_build_gate.handle({**event, "prompt": prompt})
+                    )
 
     def test_invalid_command_shaped_distill_invocations_block(self) -> None:
-        """Reject lossy-workflow scope errors before phase state can change."""
+        """Reject a lossy-workflow scope error before any inspection."""
 
         event = {
             "hook_event_name": "UserPromptSubmit",
@@ -198,61 +171,41 @@ class CraftPromptRouterTest(unittest.TestCase):
                         spec_build_gate.INVALID_DISTILL_SCOPE_REASON,
                     )
 
-        with tempfile.TemporaryDirectory() as data_directory:
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:spec amend §C"}
-                )
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:distill"}
-                )
-                blocked = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-                self.assertEqual(blocked["decision"], "block")
+    def test_build_prompts_are_never_rejected_by_shape(self) -> None:
+        """Keep every Build spelling out of the router's way.
 
-    def test_explicit_build_tail_and_canonical_full_loop_unlock(self) -> None:
-        """Accept any exact Build tail while keeping phase activation explicit."""
+        Build resolves its own scope by reading the repository, so the router
+        has no basis to judge a tail and must not cost the user a prompt for
+        wording it cannot evaluate.
+        """
 
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "session_id": "session-build-shape",
+            "turn_id": "turn-build-shape",
+            "cwd": "/tmp",
+        }
         prompts = (
-            ("$craft:build", True),
-            ("$craft:build --all", True),
-            ("$craft:build T2", True),
-            ("$craft:build T1 T2", True),
-            ("$craft:build --next --all", True),
-            ("$craft:build pim portal-manager emil", True),
-            ("$craft:build --unknown", True),
-            ("$craft:build\nportal-manager\npim", True),
-            ("$craft:full-loop", True),
-            ("$craft:full-loop T2 T3 --loop --max 2", True),
-            ('"$craft:build --next"', False),
-            ("Use $craft:build --next to implement the next task.", False),
-            ("Do not run $craft:full-loop --next --loop.", False),
-            ("$craft:build.", False),
+            "$craft:build",
+            "$craft:build --all",
+            "$craft:build T2",
+            "$craft:build T1 T2",
+            "$craft:build --next --all",
+            "$craft:build pim portal-manager emil",
+            "$craft:build --unknown",
+            "$craft:build\nportal-manager\npim",
+            "$craft:build in packages/api and packages/web",
+            '"$craft:build --next"',
+            "Use $craft:build --next to implement the next task.",
+            "$craft:build.",
         )
 
-        with tempfile.TemporaryDirectory() as data_directory:
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                for index, (prompt, authorized) in enumerate(prompts):
-                    with self.subTest(prompt=prompt):
-                        event = {
-                            "hook_event_name": "UserPromptSubmit",
-                            "session_id": f"session-{index}",
-                            "turn_id": f"turn-{index}",
-                            "cwd": data_directory,
-                        }
-                        spec_build_gate.handle(
-                            {**event, "prompt": "$craft:spec amend V2"}
-                        )
+        with patch.dict(os.environ, {}, clear=True):
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    self.assertIsNone(
                         spec_build_gate.handle({**event, "prompt": prompt})
-                        output = spec_build_gate.handle(
-                            {**event, "prompt": "Implement plan"}
-                        )
-
-                        if authorized:
-                            self.assertIsNone(output)
-                        else:
-                            self.assertEqual(output["decision"], "block")
+                    )
 
     def test_invalid_full_loop_invocations_block(self) -> None:
         """Keep Full Loop's coordinator grammar strict without limiting Build."""
@@ -279,66 +232,38 @@ class CraftPromptRouterTest(unittest.TestCase):
                         spec_build_gate.INVALID_FULL_LOOP_SCOPE_REASON,
                     )
 
-        with tempfile.TemporaryDirectory() as data_directory:
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:spec amend V8"}
-                )
-                spec_build_gate.handle(
-                    {**event, "prompt": "$craft:full-loop T1 --all"}
-                )
-                blocked = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-                self.assertEqual(blocked["decision"], "block")
+    def test_absent_host_plugin_data_never_costs_a_prompt(self) -> None:
+        """Keep an unusable host environment from rejecting every command.
 
-    def test_phase_state_failures_block_only_stateful_prompts(self) -> None:
+        Failing closed on unavailable session storage blocked every Craft
+        phase on any host that does not provide that directory, discarding the
+        user's prompt over a condition they can neither see nor fix. No prompt
+        depends on host storage now, so none may be lost to it.
+        """
+
         event = {
             "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-state-failure",
-            "turn_id": "turn-state-failure",
+            "session_id": "session-no-plugin-data",
+            "turn_id": "turn-no-plugin-data",
             "cwd": "/tmp",
         }
+        prompts = (
+            "$craft:plan",
+            "$craft:spec amend constraints",
+            "$craft:distill",
+            "$craft:destill",
+            "$craft:build --next",
+            "$craft:full-loop --next --loop",
+            "Implement plan",
+            "Explain the plan",
+        )
 
         with patch.dict(os.environ, {}, clear=True):
-            self.assertIsNone(
-                spec_build_gate.handle({**event, "prompt": "Explain the plan"})
-            )
-            unavailable = spec_build_gate.handle(
-                {**event, "prompt": "$craft:spec amend V3"}
-            )
-        self.assertEqual(unavailable["decision"], "block")
-
-        with tempfile.TemporaryDirectory() as data_directory:
-            invalid_root = Path(data_directory) / "plugin-data"
-            invalid_root.touch()
-            with patch.dict(os.environ, {"PLUGIN_DATA": str(invalid_root)}):
-                invalid = spec_build_gate.handle(
-                    {**event, "prompt": "Implement plan"}
-                )
-            self.assertEqual(invalid["decision"], "block")
-
-            failures = (
-                ("stat", "Implement plan"),
-                ("touch", "$craft:spec amend V3"),
-                ("unlink", "$craft:build --next"),
-            )
-            with patch.dict(os.environ, {"PLUGIN_DATA": data_directory}):
-                for operation, prompt in failures:
-                    with self.subTest(operation=operation):
-                        with patch.object(
-                            Path,
-                            operation,
-                            side_effect=PermissionError("denied"),
-                        ):
-                            output = spec_build_gate.handle(
-                                {**event, "prompt": prompt}
-                            )
-                        self.assertEqual(output["decision"], "block")
-                        self.assertEqual(
-                            output["reason"],
-                            spec_build_gate.PHASE_STATE_FAILURE_REASON,
-                        )
+            for prompt in prompts:
+                with self.subTest(prompt=prompt):
+                    self.assertIsNone(
+                        spec_build_gate.handle({**event, "prompt": prompt})
+                    )
 
     def test_implementation_defaults_are_canonical_invocations(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -400,9 +325,14 @@ class CraftPromptRouterTest(unittest.TestCase):
         self.assertCountEqual(pre_build_defaults, expected)
         for prompt in pre_build_defaults:
             with self.subTest(prompt=prompt):
-                self.assertTrue(
-                    spec_build_gate.PRE_BUILD_INVOCATION.fullmatch(prompt)
-                    or spec_build_gate.DISTILL_INVOCATION.fullmatch(prompt)
+                self.assertIsNone(
+                    spec_build_gate.handle(
+                        {
+                            "hook_event_name": "UserPromptSubmit",
+                            "session_id": "session-pre-build-default",
+                            "prompt": prompt,
+                        }
+                    )
                 )
 
     def test_destill_is_an_explicit_alias_to_the_canonical_contract(self) -> None:
