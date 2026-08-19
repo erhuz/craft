@@ -14,21 +14,9 @@ DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
 DISTILL_COMMAND_SHAPE = re.compile(
     r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
 )
-# ponytail: replace prompt routing when both hosts expose a structured action ID.
-IMPLEMENTATION_INVOCATION = re.compile(
-    r"\s*\$craft:(?:"
-    r"build(?:\s+[\s\S]*)?"
-    r"|full-loop"
-    r"(?:\s+(?:--next|--all|T[1-9]\d*(?:\s+T[1-9]\d*)*))?"
-    r"(?:\s+--loop(?:\s+--max\s+[1-9]\d*)?)?"
-    r")\s*"
-)
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
     "INVALID_SCOPE: use $craft:distill or $craft:destill with no arguments."
-)
-INVALID_FULL_LOOP_SCOPE_REASON = (
-    "INVALID_SCOPE: use a canonical $craft:full-loop invocation."
 )
 
 
@@ -79,11 +67,6 @@ def render_catalog(root: Path) -> str:
     return "\n".join(lines)
 
 
-def _first_token(prompt: str) -> str:
-    stripped = prompt.strip()
-    return stripped.split(maxsplit=1)[0] if stripped else ""
-
-
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
     """Render the catalog and reject a malformed Craft command shape.
 
@@ -111,15 +94,6 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
                     f"{catalog}"
                 ),
             }
-        }
-
-    if (
-        _first_token(prompt) == "$craft:full-loop"
-        and IMPLEMENTATION_INVOCATION.fullmatch(prompt) is None
-    ):
-        return {
-            "decision": "block",
-            "reason": INVALID_FULL_LOOP_SCOPE_REASON,
         }
 
     if (

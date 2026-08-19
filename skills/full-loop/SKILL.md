@@ -1,10 +1,11 @@
 ---
 name: full-loop
 description: >
-  Coordinate Build, Audit, and Check for repository-root SPEC.md tasks. Use
-  only when explicitly invoked as $craft:full-loop for --next, --all, or one
-  or more task IDs, optionally with bounded --loop repairs. Finish each task
-  only after both reviewers pass and Build creates its scoped commit.
+  Coordinate Build, Audit, and Check for SPEC.md tasks. Use only when
+  explicitly invoked as $craft:full-loop with any task, selector, path, ledger
+  set, or natural-language scope, optionally with bounded --loop repairs.
+  Finish each task only after both reviewers pass and Build creates its scoped
+  commit.
 ---
 
 # Full Loop
@@ -14,16 +15,19 @@ never write code or specification, change task status, stage, or commit directly
 
 ## Load and validate
 
-1. Parse the invocation before repository inspection. Accept only:
-   - `$craft:full-loop` or `$craft:full-loop --next`;
-   - `$craft:full-loop --all`;
-   - `$craft:full-loop T<n> [T<n> ...]`;
-   - any accepted selector followed by `--loop` and optional `--max N`.
-2. Treat no selector as `--next`. Reject mixed selectors, duplicate flags,
-   unknown arguments, non-positive `N`, and `--max` without `--loop` as
-   `INVALID_SCOPE`, then stop without repository inspection or writes.
-3. Resolve the current Git root. If none exists, use the current directory.
-4. Read only `<root>/SPEC.md`. If absent, return `SPEC_MISSING` and stop.
+1. Treat exact first token `$craft:full-loop` as coordination authorization. Do
+   not apply an argument whitelist or reject a tail solely because of command
+   shape.
+2. Treat the remaining prompt as the requested scope, resolving it into
+   concrete ledgers and tasks by Build's request-interpretation and
+   ledger-resolution rules. A tail may name task IDs, `--next`, `--all`, paths,
+   ledgers, or natural-language scope, and may bound repairs with `--loop` and
+   optional `--max N`. Treat no remaining scope as `--next`.
+3. Resolve unclear wording through read-only inspection. If the requested
+   mapping still has more than one materially different meaning, state that
+   exact ambiguity and ask one focused question before mutation.
+4. Read every resolved `SPEC.md`. A requested target without one returns
+   `SPEC_MISSING` and stops the whole preflight before mutation.
 5. Load exactly one format contract: all of `<root>/FORMAT.md` when present;
    otherwise all of `../caveman/SKILL.md`. If unreadable, return
    `FORMAT_MISSING` and stop.
@@ -48,6 +52,9 @@ actions, or other external side effects.
   `~` status. Process the unique tasks in ledger order, not argument order.
 - `--all`: snapshot every initially open `.` and `~` task in ledger order.
   Tasks added later are outside this invocation.
+- Multiple ledgers or selector clauses: apply each requested selector to its
+  resolved target, preflight the full mapping before mutation, then coordinate
+  ledgers lexically and tasks in ledger order.
 
 Do not start a new task while a prior selected task has uncommitted changes.
 Continue selected tasks from current worktree content without requiring

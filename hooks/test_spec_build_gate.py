@@ -101,9 +101,12 @@ class CraftPromptRouterTest(unittest.TestCase):
             "_remove",
             "_state_exists",
             "_normalized",
+            "_first_token",
             "PRE_BUILD_INVOCATION",
             "IMPLEMENT_PLAN_PROMPTS",
             "PHASE_STATE_FAILURE_REASON",
+            "IMPLEMENTATION_INVOCATION",
+            "INVALID_FULL_LOOP_SCOPE_REASON",
         ):
             with self.subTest(removed=removed):
                 self.assertFalse(hasattr(spec_build_gate, removed))
@@ -171,18 +174,19 @@ class CraftPromptRouterTest(unittest.TestCase):
                         spec_build_gate.INVALID_DISTILL_SCOPE_REASON,
                     )
 
-    def test_build_prompts_are_never_rejected_by_shape(self) -> None:
-        """Keep every Build spelling out of the router's way.
+    def test_implementation_prompts_are_never_rejected_by_shape(self) -> None:
+        """Keep both implementation commands out of the router's way.
 
-        Build resolves its own scope by reading the repository, so the router
-        has no basis to judge a tail and must not cost the user a prompt for
-        wording it cannot evaluate.
+        Build and Full Loop each resolve their own scope by reading the
+        repository, so the router has no basis to judge a tail and must not
+        cost the user a prompt over wording it cannot evaluate. The Full Loop
+        tails below were rejected while only Build accepted a free tail.
         """
 
         event = {
             "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-build-shape",
-            "turn_id": "turn-build-shape",
+            "session_id": "session-implementation-shape",
+            "turn_id": "turn-implementation-shape",
             "cwd": "/tmp",
         }
         prompts = (
@@ -198,6 +202,13 @@ class CraftPromptRouterTest(unittest.TestCase):
             '"$craft:build --next"',
             "Use $craft:build --next to implement the next task.",
             "$craft:build.",
+            "$craft:full-loop",
+            "$craft:full-loop --next --loop",
+            "$craft:full-loop --max 2",
+            "$craft:full-loop T1 --all",
+            "$craft:full-loop --unknown",
+            "$craft:full-loop --all --loop --max 2 in packages/api",
+            "$craft:full-loop the remaining checkout tasks",
         )
 
         with patch.dict(os.environ, {}, clear=True):
@@ -205,31 +216,6 @@ class CraftPromptRouterTest(unittest.TestCase):
                 with self.subTest(prompt=prompt):
                     self.assertIsNone(
                         spec_build_gate.handle({**event, "prompt": prompt})
-                    )
-
-    def test_invalid_full_loop_invocations_block(self) -> None:
-        """Keep Full Loop's coordinator grammar strict without limiting Build."""
-
-        event = {
-            "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-invalid-full-loop",
-            "turn_id": "turn-invalid-full-loop",
-            "cwd": "/tmp",
-        }
-        prompts = (
-            "$craft:full-loop --max 2",
-            "$craft:full-loop T1 --all",
-            "$craft:full-loop --unknown",
-        )
-
-        with patch.dict(os.environ, {}, clear=True):
-            for prompt in prompts:
-                with self.subTest(prompt=prompt):
-                    output = spec_build_gate.handle({**event, "prompt": prompt})
-                    self.assertEqual(output["decision"], "block")
-                    self.assertEqual(
-                        output["reason"],
-                        spec_build_gate.INVALID_FULL_LOOP_SCOPE_REASON,
                     )
 
     def test_absent_host_plugin_data_never_costs_a_prompt(self) -> None:
@@ -291,8 +277,14 @@ class CraftPromptRouterTest(unittest.TestCase):
         self.assertCountEqual(agent_defaults, implementation_defaults)
         for prompt in implementation_defaults:
             with self.subTest(prompt=prompt):
-                self.assertIsNotNone(
-                    spec_build_gate.IMPLEMENTATION_INVOCATION.fullmatch(prompt)
+                self.assertIsNone(
+                    spec_build_gate.handle(
+                        {
+                            "hook_event_name": "UserPromptSubmit",
+                            "session_id": "session-implementation-default",
+                            "prompt": prompt,
+                        }
+                    )
                 )
 
     def test_pre_build_defaults_are_canonical_invocations(self) -> None:
@@ -577,6 +569,36 @@ class CraftSkillPolicyTest(unittest.TestCase):
             "preserve and include the path as it stands instead of blocking",
             normalized,
         )
+
+    def test_full_loop_accepts_a_free_tail_like_build(self) -> None:
+        """Give both implementation commands the same request grammar.
+
+        Full Loop rejected any tail outside a fixed selector list while Build
+        accepted anything resolvable, so the same phrasing worked for one and
+        failed for the other with no stated reason.
+        """
+
+        root = Path(__file__).resolve().parents[1]
+        full_loop = " ".join(
+            (root / "skills" / "full-loop" / "SKILL.md").read_text().split()
+        )
+
+        for contract in (
+            "Treat exact first token `$craft:full-loop` as coordination "
+            "authorization",
+            "Do not apply an argument whitelist or reject a tail solely because "
+            "of command shape",
+            "resolving it into concrete ledgers and tasks by Build's "
+            "request-interpretation and ledger-resolution rules",
+            "paths, ledgers, or natural-language scope",
+            "Treat no remaining scope as `--next`",
+            "Multiple ledgers or selector clauses",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, full_loop)
+
+        self.assertNotIn("Accept only:", full_loop)
+        self.assertNotIn("Reject mixed selectors", full_loop)
 
     def test_build_and_full_loop_share_next_task_precedence(self) -> None:
         root = Path(__file__).resolve().parents[1]
