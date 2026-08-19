@@ -1,0 +1,6 @@
+interface:
+  display_name: "All In"
+  short_description: "Drive one idea through Plan, Spec, and Full Loop with confirmed gates"
+  default_prompt: "$craft:all-in"
+policy:
+  allow_implicit_invocation: false
