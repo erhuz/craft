@@ -13,9 +13,7 @@ from typing import Any
 
 
 PRE_BUILD_INVOCATION = re.compile(r"\A\s*\$craft:(?:plan|spec)(?=\s|$)")
-DISTILL_INVOCATION = re.compile(
-    r"\A\s*\$craft:(?:distill(?:(?:\s+--(?:candidate|promote))?\s*)?|destill)\Z"
-)
+DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
 DISTILL_COMMAND_SHAPE = re.compile(
     r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
 )
@@ -31,8 +29,7 @@ IMPLEMENTATION_INVOCATION = re.compile(
 IMPLEMENT_PLAN_PROMPTS = {"implement plan", "implement the plan"}
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
-    "INVALID_SCOPE: use $craft:distill, $craft:distill --candidate, "
-    "$craft:distill --promote, or $craft:destill."
+    "INVALID_SCOPE: use $craft:distill or $craft:destill with no arguments."
 )
 INVALID_FULL_LOOP_SCOPE_REASON = (
     "INVALID_SCOPE: use a canonical $craft:full-loop invocation."

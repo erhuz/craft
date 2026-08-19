@@ -66,9 +66,8 @@ class CraftPromptRouterTest(unittest.TestCase):
             ("plan", "$craft:plan", True),
             ("spec_args", "$craft:spec amend constraints", True),
             ("distill", "$craft:distill", True),
-            ("distill_candidate", "$craft:distill --candidate", True),
-            ("distill_promote", "$craft:distill --promote", True),
             ("destill_alias", "$craft:destill", True),
+            ("destill_trailing_space", "$craft:destill ", True),
             ("multiline", "\n\t$craft:plan\nexplore order imports", True),
             ("quoted", '"$craft:plan"', False),
             ("quoted_alias", '"$craft:destill"', False),
@@ -178,6 +177,8 @@ class CraftPromptRouterTest(unittest.TestCase):
             "cwd": "/tmp",
         }
         prompts = (
+            "$craft:distill --candidate",
+            "$craft:distill --promote",
             "$craft:distill --candidate --promote",
             "$craft:destill section",
             "$craft:distill $craft:spec",
@@ -202,7 +203,7 @@ class CraftPromptRouterTest(unittest.TestCase):
                     {**event, "prompt": "$craft:spec amend §C"}
                 )
                 spec_build_gate.handle(
-                    {**event, "prompt": "$craft:distill --candidate"}
+                    {**event, "prompt": "$craft:distill"}
                 )
                 blocked = spec_build_gate.handle(
                     {**event, "prompt": "Implement plan"}
@@ -514,40 +515,67 @@ class CraftSkillPolicyTest(unittest.TestCase):
         )
 
     def test_distill_requires_a_stable_confirmed_current_truth_rewrite(self) -> None:
-        """Preserve intent and data-loss guards across preview and application."""
+        """Keep identifiers permanent and preserve intent and data-loss guards.
+
+        Distillation is the only phase that removes ledger rows, so it is also
+        the only place identifier stability can be lost. Pin the single
+        confirmed mode, the permanent-gap rule, and the absence of any staging
+        ledger that a renumbering workflow would otherwise need.
+        """
 
         root = Path(__file__).resolve().parents[1]
         skill = (root / "skills" / "distill" / "SKILL.md").read_text()
         caveman = (root / "skills" / "caveman" / "SKILL.md").read_text()
         spec = (root / "skills" / "spec" / "SKILL.md").read_text()
+        build = (root / "skills" / "build" / "SKILL.md").read_text()
         normalized = " ".join(skill.split())
         caveman_normalized = " ".join(caveman.split())
+        spec_normalized = " ".join(spec.split())
 
         for contract in (
-            "Accept one of:",
-            "`$craft:distill`",
-            "--candidate",
-            "--promote",
+            "Accept only the exact command `$craft:distill` with no arguments",
             "If any task is `~`, return `ACTIVE_TASK`",
-            "return `SPEC_ID_REFERENCE` with exact locations and stop",
             "choose `defect`, `changed intent`, or `unknown`",
             "`defect` and `unknown` keep the intended ledger rule",
             "When two ledger claims express mutually exclusive intent",
             "requires an explicit answer",
-            "Renumber surviving `V`, `T`, and `B` rows independently from 1",
+            "Keep every surviving `V`, `T`, and `B` identifier and every task "
+            "citation exactly as they stand",
+            "Removed identifiers leave permanent gaps and are never reallocated",
             "Write nothing on the preview turn",
             "If any material input differs, return `DISTILL_STALE`",
             "return `DISTILL_UNRESOLVED` and write nothing",
-            "including relevant untracked files",
-            "In Candidate mode, replace only `NEW_SPEC.md` and `DISTILL_MIGRATION.md`",
-            "atomically replace `SPEC.md` with `NEW_SPEC.md`",
+            "staged, unstaged, and untracked state as the preview baseline",
+            "Replace `SPEC.md` atomically with the confirmed content in one write",
+            "Create no staging, candidate, migration, or archive file",
         ):
             with self.subTest(contract=contract):
                 self.assertIn(contract, normalized)
 
+        for removed in (
+            "--candidate",
+            "--promote",
+            "NEW_SPEC.md",
+            "DISTILL_MIGRATION.md",
+            "SPEC_ID_REFERENCE",
+            "Renumber surviving",
+        ):
+            with self.subTest(removed=removed):
+                self.assertNotIn(removed, skill)
+                self.assertNotIn(removed, build)
+
         self.assertIn("`No distillation needed.`", skill)
-        self.assertIn("Outside a confirmed `$craft:distill`", caveman_normalized)
-        self.assertIn("renumber survivors from 1", caveman_normalized)
+        self.assertIn(
+            "never reuse or renumber an identifier", caveman_normalized
+        )
+        self.assertIn(
+            "survivors keep the identifiers and citations they already carry",
+            caveman_normalized,
+        )
+        self.assertIn(
+            "never reuse or renumber an existing or deleted ID", spec_normalized
+        )
+        self.assertIn("no phase renumbers an identifier", spec_normalized)
         self.assertIn("## Bootstrap from code", spec)
         self.assertNotIn("## Distill from code", spec)
 

@@ -73,8 +73,8 @@ Mark inference with `?`; do not present guesses as system truth.
 ## Amend
 
 Read the named section and the references that constrain it. Preserve unrelated
-sections, wording, IDs, and task status. Outside a confirmed `$craft:distill`,
-allocate IDs monotonically and never reuse deleted IDs. Change direct
+sections, wording, IDs, and task status. Allocate IDs monotonically and never
+reuse or renumber an existing or deleted ID. Change direct
 dependencies only when needed to avoid a dangling or contradictory reference,
 and call those changes out in the diff.
 
@@ -97,8 +97,8 @@ not edit code or commit.
 
 - Semantic `SPEC.md` writes only; no implementation, tests, verification, or git
   commit.
-- Existing-ledger compaction and renumbering belong only to confirmed
-  `$craft:distill`.
+- Existing-ledger compaction belongs only to confirmed `$craft:distill`, and no
+  phase renumbers an identifier.
 - No sub-agents, dashboards, auxiliary state, or speculative scaffolding.
 - Preserve exact paths, identifiers, commands, and code tokens.
 - Never encode human-only actions as task requirements or completion gates;
