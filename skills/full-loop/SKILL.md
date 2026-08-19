@@ -28,8 +28,8 @@ never write code or specification, change task status, stage, or commit directly
    otherwise all of `../caveman/SKILL.md`. If unreadable, return
    `FORMAT_MISSING` and stop.
 6. Read all of `../build/SKILL.md`, `../audit/SKILL.md`, and
-   `../check/SKILL.md`. If any is unreadable, return `CONTRACT_MISSING` naming
-   it and stop.
+   `../check/SKILL.md`. If any is unreadable, name the file, report that its
+   contract could not be loaded, and stop.
 7. Read relevant local instructions and inspect Git status. Preserve every
    unrelated staged, unstaged, and untracked path.
 
@@ -63,16 +63,18 @@ For each selected task:
 
 1. Record baseline `HEAD`, current status, and unrelated dirty paths.
 2. Delegate the task to Build in Full Loop review mode. Build implements and
-   verifies it, leaves it `~`, and returns `BUILD_READY` with the exact delegated
-   Build command selector, domain contract text, task-owned diff, and evidence.
-   Do not review a blocked or incomplete handoff.
+   verifies it, leaves it `~`, and returns a review handoff with the exact
+   delegated Build command selector, domain contract text, task-owned diff, and
+   evidence. Do not review a blocked or incomplete handoff.
 3. Delegate to Audit with the task goal, cited contract content without ledger
    labels, baseline, exact task-owned diff, and verification evidence.
    Explicitly request one minimal `Remedy:` per issue.
 4. Regardless of Audit findings, delegate to Check as `$craft:check T<n>` with
-   the same `BUILD_READY` evidence. Keep both phases read-only and sequential.
-5. Pass only when Audit outputs exactly `No material issues found.` and Check
-   outputs exactly `No drift found.`.
+   the same handoff evidence. Keep both phases read-only and sequential.
+5. Pass only when both reviewers report nothing left to change. Judge each
+   report on its content, not on matching a fixed string: a reworded clean
+   result still passes, and a clean-sounding sentence carrying a caveat, an
+   unresolved evidence gap, or an open finding does not.
 6. Before finalization, verify `HEAD` and the reviewed task-owned diff are
    unchanged and no unrelated path became staged. Any changed implementation,
    test, interface, or semantic spec content invalidates both reviews.
@@ -88,15 +90,15 @@ an evidence gap, `UNVERIFIABLE`, or one clean reviewer as a pass.
 Collapse overlapping Audit and Check findings into one evidence-backed repair
 input; preserve each distinct location, violated contract, and minimal remedy.
 
-- Without `--loop`, return `FULL_LOOP_ISSUES`. Leave the task `~`, its slice
-  uncommitted, and unrelated changes untouched.
+- Without `--loop`, report the outstanding findings and stop. Leave the task
+  `~`, its slice uncommitted, and unrelated changes untouched.
 - With `--loop`, if the per-task return count is below `N`, increment it and
   return the combined findings to Build. Build classifies and repairs them,
-  reruns focused and final gates, and produces a fresh `BUILD_READY` handoff.
-  Then rerun both Audit and Check.
-- If findings remain after `N` returns to Build, return `LOOP_LIMIT`. Leave the
-  task `~` and uncommitted.
-- Stop early with `FULL_LOOP_BLOCKED` when evidence is insufficient for an
+  reruns focused and final gates, and produces a fresh handoff. Then rerun both
+  Audit and Check.
+- If findings remain after `N` returns to Build, report that the repair limit
+  was reached and what remains. Leave the task `~` and uncommitted.
+- Stop early, naming the exact obstacle, when evidence is insufficient for an
   actionable change, a required permission or external state is unavailable,
   or another retry would be blind.
 
@@ -110,8 +112,8 @@ task or an `--all` snapshot.
 
 ## Finish
 
-Return `FULL_LOOP_PASS` only after every selected task has both clean review
-sentinels and its own verified commit. Include task goals, commit SHAs, and each
+Report the run complete only after every selected task has a clean result from
+both reviewers and its own verified commit. Include task goals, commit SHAs, and each
 task's return-to-Build count; use an exact Craft command selector only when a
 task must be disambiguated. A committed task is complete; a clean but uncommitted
 handoff is not.

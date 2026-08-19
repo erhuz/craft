@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -468,8 +469,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertIn("Preflight the full ledger/task mapping", select)
         self.assertIn("absent ID → return `TASK_NOT_FOUND` and stop", load)
         self.assertIn(
-            "`x` → report `TASK_ALREADY_COMPLETE` as a per-task strict no-op "
-            "and continue preflighting other requested tasks",
+            "`x` → report the task as already complete, treat it as a per-task "
+            "strict no-op, and continue preflighting other requested tasks",
             load,
         )
         self.assertIn(
@@ -479,7 +480,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         )
         self.assertLess(load.index("TASK_NOT_FOUND"), load.index("Read local"))
         self.assertLess(
-            load.index("TASK_ALREADY_COMPLETE"), load.index("Read local")
+            load.index("already complete"), load.index("Read local")
         )
 
     def test_check_reconciles_current_truth_sections_only(self) -> None:
@@ -534,7 +535,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
 
         for contract in (
             "Accept only the exact command `$craft:distill` with no arguments",
-            "If any task is `~`, return `ACTIVE_TASK`",
+            "If any task is `~`, name that in-flight task and stop",
             "choose `defect`, `changed intent`, or `unknown`",
             "`defect` and `unknown` keep the intended ledger rule",
             "When two ledger claims express mutually exclusive intent",
@@ -543,8 +544,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
             "citation exactly as they stand",
             "Removed identifiers leave permanent gaps and are never reallocated",
             "Write nothing on the preview turn",
-            "If any material input differs, return `DISTILL_STALE`",
-            "return `DISTILL_UNRESOLVED` and write nothing",
+            "If any material input differs, report the preview as stale",
+            "name each unanswered choice and write nothing",
             "staged, unstaged, and untracked state as the preview baseline",
             "Replace `SPEC.md` atomically with the confirmed content in one write",
             "Create no staging, candidate, migration, or archive file",
@@ -682,6 +683,57 @@ class CraftSkillPolicyTest(unittest.TestCase):
             normalized,
         )
         self.assertNotIn("supplied: invoke `$craft:backprop`", normalized)
+
+    def test_skill_sentinels_stay_within_the_allowed_vocabulary(self) -> None:
+        """Keep machine tokens scarce so a reader needs no decoder ring.
+
+        An underscored capital is the shape every control sentinel takes, so
+        scanning for that shape catches one reintroduced anywhere in the skill
+        contracts while leaving per-item report verdict labels alone.
+        """
+
+        root = Path(__file__).resolve().parents[1]
+        allowed = {
+            "SPEC_MISSING",
+            "FORMAT_MISSING",
+            "INVALID_SCOPE",
+            "TASK_NOT_FOUND",
+            "NO_OPEN_TASKS",
+        }
+        sentinel_shape = re.compile(r"\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b")
+
+        for skill in sorted((root / "skills").glob("*/SKILL.md")):
+            with self.subTest(skill=skill.parent.name):
+                found = set(sentinel_shape.findall(skill.read_text()))
+                self.assertEqual(found - allowed, set())
+
+    def test_review_results_are_judged_rather_than_string_matched(self) -> None:
+        """Stop a reworded clean review from failing the finalization gate.
+
+        Both reviewers previously had to emit one byte-exact sentence, so any
+        hedge or rewording stalled a finished task. Pin the judged wording on
+        the coordinator side and on the side that finalizes the commit.
+        """
+
+        root = Path(__file__).resolve().parents[1]
+        full_loop = (root / "skills" / "full-loop" / "SKILL.md").read_text()
+        build = (root / "skills" / "build" / "SKILL.md").read_text()
+
+        self.assertIn(
+            "Pass only when both reviewers report nothing left to change",
+            " ".join(full_loop.split()),
+        )
+        self.assertIn(
+            "Judge each report on its content, not on matching a fixed string",
+            " ".join(full_loop.split()),
+        )
+        self.assertIn(
+            "Judge that report on its content rather than matching a fixed "
+            "string",
+            " ".join(build.split()),
+        )
+        self.assertNotIn("outputs exactly", full_loop)
+        self.assertNotIn("exact clean", build)
 
     def test_explicit_only_skills_disable_implicit_invocation(self) -> None:
         root = Path(__file__).resolve().parents[1]

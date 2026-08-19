@@ -124,8 +124,7 @@ configurability, or abstraction.
 Do not declare the plan ready while an unanswered question could materially
 change the outcome, actor, scope boundary, data owner, public interface,
 authorization, privacy, irreversible migration, or acceptance test. Continue
-the interview or return `PLAN_BLOCKED` with the exact decision or evidence
-needed.
+the interview or stop and name the exact decision or evidence still needed.
 
 Non-material unknowns may remain only when the brief names the assumption, its
 risk, who or what can resolve it, and when it must be resolved. If the initial
@@ -137,8 +136,8 @@ repeat a model the user has already explicitly confirmed.
 
 ## Deliver the planning brief
 
-Return `PLAN_READY` followed by the smallest self-contained brief that a new
-implementer could act on without reading the interview:
+Return the smallest self-contained brief that a new implementer could act on
+without reading the interview:
 
 ```text
 # <concept> planning brief

@@ -42,8 +42,8 @@ own semantic spec content.
    `SPEC_MISSING` and stops the whole preflight before mutation.
 4. For every explicit task ID, inspect its ledger row:
    - absent ID → return `TASK_NOT_FOUND` and stop;
-   - `x` → report `TASK_ALREADY_COMPLETE` as a per-task strict no-op and
-     continue preflighting other requested tasks.
+   - `x` → report the task as already complete, treat it as a per-task strict
+     no-op, and continue preflighting other requested tasks.
 5. Read local instructions and `FORMAT.md` for every selected ledger when
    present, plus the contracts in `../ponytail/SKILL.md` and
    `../caveman/SKILL.md`.
@@ -165,16 +165,17 @@ Loop, split ownership into review and finalization:
 
 1. In review mode, perform Execute steps 1–4, leave the task `~`, and do not
    stage or commit.
-2. Return `BUILD_READY` with the exact delegated Build command selector,
+2. Return a review handoff carrying the exact delegated Build command selector,
    selected goal and applicable contract text without ledger labels, baseline
    `HEAD`, exact task-owned paths and diff, and focused plus final gate commands
-   and results.
+   and results. Say plainly that the slice is ready for review and uncommitted.
 3. If Full Loop returns review findings, classify them through Failure routing,
    repair only the authorized task slice, rerun its gates, and return a fresh
-   `BUILD_READY`. Any code, test, interface, or semantic spec edit invalidates
-   prior Audit and Check results.
-4. Finalize only when Full Loop supplies exact clean results from both reviewers
-   for the unchanged handoff. Verify baseline `HEAD`, task-owned diff, and
+   handoff. Any code, test, interface, or semantic spec edit invalidates prior
+   review results.
+4. Finalize only when Full Loop reports that review found nothing to change for
+   the unchanged handoff. Judge that report on its content rather than matching
+   a fixed string. Verify baseline `HEAD`, task-owned diff, and
    unrelated dirty paths; then perform Execute steps 5–6 and return the commit
    SHA. The `~` → `x` status edit is the only expected post-review content
    change before staging.
@@ -209,8 +210,8 @@ Mark and commit a task complete only when:
 - the task commit contains only intended files;
 - unrelated baseline worktree bytes and index entries remain unchanged.
 
-When delegated by Full Loop, also require unchanged `BUILD_READY` evidence and
-exact clean Audit and Check results supplied by that coordinator.
+When delegated by Full Loop, also require that the handoff evidence is unchanged
+and that the coordinator reports a review with nothing left to change.
 
 ## Boundaries
 

@@ -170,7 +170,7 @@ If no supported material issue or required evidence gap exists, output only:
 
 When delegated by Full Loop, inspect only the exact delegated Build command
 selector, task goal, cited contract content without ledger labels, baseline,
-exact task-owned `BUILD_READY` diff, and verification evidence. Do not widen
+exact task-owned review-handoff diff, and verification evidence. Do not widen
 into unrelated ledger items or paths.
 
 Full Loop's delegated request explicitly asks for solutions, so add exactly one

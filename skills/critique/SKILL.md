@@ -23,8 +23,8 @@ present them as proven facts.
    including staged, unstaged, and untracked paths.
 3. Resolve an explicit target against repository paths, symbols, task IDs,
    artifacts, and local Git refs. It overrides all defaults. If one material
-   target cannot be established, return `TARGET_MISSING` or ask one focused
-   question when multiple concrete candidates remain.
+   target cannot be established, say so plainly, or ask one focused question
+   when multiple concrete candidates remain.
 4. With no target and a dirty worktree, critique the complete current change
    set: staged and unstaged diffs plus relevant untracked files. With no target
    and a clean worktree, critique the repository. Outside Git, use the current
@@ -90,8 +90,8 @@ its configured command is known not to rewrite tracked files.
   servers, or destructive cleanup.
 - Ignored caches and ordinary build artifacts are acceptable. Compare tracked
   status with the baseline after probing.
-- If a probe unexpectedly changes a tracked path, stop and return
-  `PROBE_MUTATED_WORKTREE` with those paths. Do not revert or adopt the change.
+- If a probe unexpectedly changes a tracked path, stop and report those exact
+  paths. Do not revert or adopt the change.
 - A failed command is evidence to trace. Report it only when its cause is in
   scope; keep environmental or permission failures as an evidence gap rather
   than inventing a product defect.

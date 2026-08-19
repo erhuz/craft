@@ -35,7 +35,7 @@ invocation as analysis and the confirmed second turn as the only write gate.
 5. Read relevant local instructions. Capture the exact `SPEC.md` bytes, Git
    `HEAD` when present, and staged, unstaged, and untracked state as the preview
    baseline.
-6. If any task is `~`, return `ACTIVE_TASK` and stop before implementation
+6. If any task is `~`, name that in-flight task and stop before implementation
    inspection or writes. Distillation must not interrupt an in-flight task.
 
 ## Keep identifiers stable
@@ -122,7 +122,7 @@ If no material reduction or clarification exists, output only:
 
 `No distillation needed.`
 
-Otherwise return `DISTILL_PREVIEW` with:
+Otherwise return the preview with:
 
 1. preview baseline identity;
 2. concise Keep, Rewrite, and Remove lists with evidence;
@@ -139,16 +139,16 @@ or correction creates a new preview and invalidates the old one.
 
 Before writing, re-resolve the root and re-read the ledger, selected format,
 Git `HEAD`, worktree state, and every evidence path used by the preview. If any
-material input differs, return `DISTILL_STALE`, write nothing, and regenerate
-the preview.
+material input differs, report the preview as stale, write nothing, and
+regenerate it.
 
-If any semantic question remains unanswered, return `DISTILL_UNRESOLVED` and
-write nothing. A general confirmation never substitutes for the missing choice.
+If any semantic question remains unanswered, name each unanswered choice and
+write nothing. A general confirmation never substitutes for a missing choice.
 
 Replace `SPEC.md` atomically with the confirmed content in one write, making no
 new semantic decision during application. Create no staging, candidate,
 migration, or archive file; `SPEC.md` is the only ledger any phase reads. Then
-return `DISTILL_APPLIED` with the final diff and compact kept, rewritten, and
+report the applied rewrite with the final diff and compact kept, rewritten, and
 removed counts.
 
 ## Boundaries

@@ -101,7 +101,7 @@ Classify every selected invariant:
 Classify task claims against implementation evidence:
 
 - `VERIFIED`: an `x` task has concrete implementation or proof;
-- `READY`: a selected `~` task has an unchanged Full Loop `BUILD_READY` handoff,
+- `READY`: a selected `~` task has an unchanged Full Loop review handoff,
   concrete implementation proof, passing required gates, and holding cited
   contracts;
 - `INCOMPLETE`: a specifically selected open task has direct evidence that its
