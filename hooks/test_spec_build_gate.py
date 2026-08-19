@@ -552,7 +552,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertNotIn("## Distill from code", spec)
 
     def test_build_uses_domain_artifacts_and_goal_based_commits(self) -> None:
-        """Prevent volatile ledger labels from coupling implementation outputs."""
+        """Prevent volatile IDs and non-English comments in Build outputs."""
 
         root = Path(__file__).resolve().parents[1]
         build = (root / "skills" / "build" / "SKILL.md").read_text()
@@ -571,6 +571,10 @@ class CraftSkillPolicyTest(unittest.TestCase):
         )
         self.assertIn(
             "every authored or materially changed non-generated function",
+            artifact,
+        )
+        self.assertIn(
+            "Write every code comment and docstring only in English",
             artifact,
         )
         self.assertIn("including test functions", artifact)

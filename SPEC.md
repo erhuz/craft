@@ -10,6 +10,7 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 - pre-existing `~` tasks & dirty intended paths remain resumable; ownership attribution or same-path overlap never blocks Build
 - shared structured semantic-phase action ID unavailable across supported hosts ∴ exact prompt grammar remains routing boundary
 - Build-authored implementation artifacts use domain meaning, never volatile SPEC identifiers
+- Build-authored code comments and docstrings use English only, regardless of implementation language
 - source checkout only; installed plugin/cache refresh requires separate authorization
 - no dependency, provider action, deployment, repository outside explicit Build request, end-to-end agent harness, or broad hook enforcement
 
@@ -20,7 +21,7 @@ phase-state: `PLUGIN_DATA` or `CLAUDE_PLUGIN_DATA` → `spec-build-gate/<sha256(
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` & `$craft:full-loop` → implementation authority
 distill-invocation: `$craft:distill` and `$craft:distill --candidate` for candidate mode; `$craft:distill --promote` for promotion; `$craft:destill` exact alias; malformed scope → `INVALID_SCOPE`
 distill-rewrite: stable root `SPEC.md` + current intent + evidence + operator decisions → preview / confirmed atomic replacement / no-op
-implementation-artifact: Build-authored source + tests + comments/docstrings + docs + runtime output + commit/handoff prose → domain meaning; SPEC identifiers ⊥
+implementation-artifact: Build-authored source + tests + comments/docstrings + docs + runtime output + commit/handoff prose → domain meaning; comments/docstrings → English only; SPEC identifiers ⊥
 check-scope: `$craft:check` / `--all` → current `§G` + `§C` + `§I` + `§V` + `§T`; `§B` excluded
 build-request: exact first token `$craft:build` + unrestricted tail → one|many concrete ledgers/tasks; unresolved mapping → focused clarification before mutation
 task-selector: one|many explicit task IDs / `--next` / `--all` / request-defined selector clauses → per-ledger ordered tasks / strict no-op / `TASK_NOT_FOUND` / `TASK_ALREADY_COMPLETE`
@@ -42,7 +43,7 @@ V12: Distill first returns evidence-backed keep/rewrite/remove list + complete r
 V13: confirmed Distill candidate mode preserves current intent, open tasks + cited contracts, trust-boundary/data-loss/security/failure rules & unresolved defects; no-obvious reduction still yields `No distillation needed.`
 V14: Distill promotion may replace `SPEC.md` atomically from `NEW_SPEC.md` only when `NEW_SPEC.md` + `DISTILL_MIGRATION.md` are current and open-task meaning is synchronized; remove artifacts after promotion; `SPEC.md` remains authoritative until then.
 V15: Build may read `NEW_SPEC.md` and `DISTILL_MIGRATION.md` during migration cleanup; these artifacts may carry candidate identifiers only while migration is active; final product truth stays in `SPEC.md`.
-V16: Build-authored implementation artifacts never contain actual SPEC identifiers except exact Craft command selectors; every authored/materially changed non-generated function includes intent + rationale comment/docstring; feature commit = `build: <goal>`; defect commit = `fix: <root cause>`; completion prose omits unnecessary IDs
+V16: Build-authored implementation artifacts never contain actual SPEC identifiers except exact Craft command selectors; every code comment/docstring is English only; every authored/materially changed non-generated function includes intent + rationale comment/docstring; feature commit = `build: <goal>`; defect commit = `fix: <root cause>`; completion prose omits unnecessary IDs
 V17: multi-ledger/task Build normalizes + deduplicates ledger paths, preflights full requested mapping before mutation, then processes ledgers lexically + tasks in ledger order, single-threaded with one verified commit per task; first blocker/failure stops untouched work without reverting completed commits
 
 §T
@@ -58,6 +59,7 @@ T8|x|Keep direct Build activation explicit, resolve unrestricted request tails r
 T9|x|Anchor Plan/Spec activation, align defaults & cover canonical, multiline, quoted, embedded, explanatory, negated, punctuated, case-changed prompts|V9,I.prompt-hook,I.phase-state
 T10|x|Add confirmed current-truth Distill workflow, explicit alias, renumbering safeguards & identifier-independent Build artifacts|V9,V10,V11,V12,V13,V14,V15,V16,I.phase-authority,I.distill-invocation,I.distill-rewrite,I.implementation-artifact
 T11|x|Remove Build scope whitelist & support deterministic multi-ledger/task execution with prompt-routing proof|V2,V8,V17,I.build-request,I.task-selector,I.prompt-hook
+T12|x|Make Build code-comment language explicitly English-only & add contract proof|V16,I.implementation-artifact
 
 §B
 id|date|cause|fix

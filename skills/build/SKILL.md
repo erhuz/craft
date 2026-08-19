@@ -102,10 +102,12 @@ Use domain meaning rather than volatile ledger labels throughout implementation:
   replacement planning. Build may read migration mappings to replace references
   with stable domain language, but `SPEC.md` remains authoritative until
   explicit `$craft:distill --promote`.
-- Give every authored or materially changed non-generated function, including
-  test functions, a language-appropriate comment or docstring explaining its
-  intended use and why it exists. Generated and vendored functions are exempt;
-  Build still introduces no SPEC identifiers into them.
+- Write every code comment and docstring only in English, regardless of the
+  implementation language. Give every authored or materially changed
+  non-generated function, including test functions, a comment or docstring
+  using that language's normal syntax that explains its intended use and why it
+  exists. Generated and vendored functions are exempt; Build still introduces
+  no SPEC identifiers into them.
 - Review the task diff for this contract before running final gates.
 
 ## Git baseline
