@@ -88,7 +88,13 @@ external side effect, missing permission, or meaningful scope expansion.
 
 ## Implementation artifact contract
 
-Use domain meaning rather than volatile ledger labels throughout implementation:
+Use domain meaning rather than ledger labels throughout implementation.
+Identifiers are permanent, but their rows are not: Spec rewrites a row in place
+and Distill removes it, leaving a gap. Artifacts also outlive and travel beyond
+`SPEC.md` — `git log`, published docs, runtime output — so a label resolves to
+nothing for a reader without the ledger.
+
+Avoid introducing a reference in the first place:
 
 - Actual SPEC identifiers may appear only inside `SPEC.md` and exact Craft
   command selectors. Never copy them into source, comments, docstrings, tests,
@@ -105,7 +111,11 @@ Use domain meaning rather than volatile ledger labels throughout implementation:
   using that language's normal syntax that explains its intended use and why it
   exists. Generated and vendored functions are exempt; Build still introduces
   no SPEC identifiers into them.
-- Review the task diff for this contract before running final gates.
+- Before running final gates, sweep the task-owned diff for SPEC identifiers.
+  Rewrite each one into domain meaning in place, then run the gates on the
+  corrected diff. An accidental reference is a cleanup step, never a blocker
+  and never a reason to stop or reopen the task. A bare `V<n>` or `T<n>` token
+  with no reference context is not a violation; leave it alone.
 
 ## Git baseline
 

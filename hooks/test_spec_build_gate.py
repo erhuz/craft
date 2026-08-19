@@ -580,7 +580,12 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertNotIn("## Distill from code", spec)
 
     def test_build_uses_domain_artifacts_and_goal_based_commits(self) -> None:
-        """Prevent volatile IDs and non-English comments in Build outputs."""
+        """Keep ledger labels out of Build outputs without stalling a task.
+
+        The ban is worth nothing if an accidental reference halts work, so pin
+        both halves: the prohibition that prevents references, and the final
+        sweep that rewrites a slipped one instead of blocking completion.
+        """
 
         root = Path(__file__).resolve().parents[1]
         build = (root / "skills" / "build" / "SKILL.md").read_text()
@@ -606,6 +611,20 @@ class CraftSkillPolicyTest(unittest.TestCase):
             artifact,
         )
         self.assertIn("including test functions", artifact)
+        self.assertIn("Avoid introducing a reference in the first place", build)
+        for sweep in (
+            "Before running final gates, sweep the task-owned diff for SPEC "
+            "identifiers",
+            "Rewrite each one into domain meaning in place, then run the gates "
+            "on the corrected diff",
+            "never a blocker and never a reason to stop or reopen the task",
+            "A bare `V<n>` or `T<n>` token with no reference context is not a "
+            "violation",
+        ):
+            with self.subTest(sweep=sweep):
+                self.assertIn(sweep, artifact)
+        self.assertNotIn("volatile", build)
+
         self.assertIn("Feature commit: `build: <goal>`", build)
         self.assertIn("`fix: <root cause>`", build)
         self.assertIn("commit: `fix: <root cause>`", backprop)
