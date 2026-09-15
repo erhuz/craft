@@ -16,8 +16,13 @@ code never written.
 
 Choose `$craft:ponytail lite`, `$craft:ponytail full`, or `$craft:ponytail ultra`.
 Use `full` when no mode has been selected. A bare invocation keeps the current
-mode. Keep the choice in conversation context until the user changes it;
-resuming or compacting the conversation must preserve a known selection.
+mode.
+
+An explicit `stop ponytail` or `normal mode` request suspends Ponytail's
+minimalism and response-format guidance. The next explicit `$craft:ponytail`
+invocation reactivates it in the previous mode, unless a new mode is supplied.
+Keep the mode and suspension in conversation context until the user changes
+them; resuming or compacting must preserve both when known.
 
 | Mode | Behavior |
 |------|----------|
@@ -25,9 +30,9 @@ resuming or compacting the conversation must preserve a known selection.
 | `full` | Apply the ladder and deliver the smallest correct implementation. |
 | `ultra` | Challenge optional complexity before adding code; favor removing redundant parts within scope and reusing existing behavior. |
 
-Modes never change explicit requirements, safety, verification, or permission
-to enter another Craft phase. A mode-only request gets a brief acknowledgement;
-it does not start implementation.
+Modes and suspension never change explicit requirements, safety, verification,
+or permission to enter another Craft phase. A mode-only or suspension request
+gets a brief acknowledgement; it does not start implementation.
 
 ## Use the ladder
 
@@ -41,6 +46,13 @@ stop at the first rung that holds. In `lite`, use it to identify alternatives:
 5. Use an already-installed dependency.
 6. Use one line when one line is correct.
 7. Write the minimum code that works.
+
+Once the affected flow is understood and a correct, simple solution is found,
+proceed. Do not research every alternative; continue investigating only to
+resolve a material uncertainty or complete requested analysis.
+
+When two solutions are equally small, choose the one that handles edge cases
+correctly with fewer assumptions.
 
 For bugs, find root cause and inspect shared callers. Prefer one fix at the
 common ownership point over repeated symptom guards.

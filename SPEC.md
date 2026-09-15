@@ -19,8 +19,8 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 
 §I
 skill-policy: `skills/*/agents/openai.yaml` → `policy.allow_implicit_invocation: boolean`
-ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; bare invocation preserves selection; mode-only invocation starts no implementation
-session-hook: `SessionStart` → complete Ponytail policy + default `full`; known conversation mode survives resume/compaction; no mode storage
+ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance; explicit invocation reactivates previous or supplied mode; mode/suspension-only request starts no implementation
+session-hook: `SessionStart` → complete Ponytail policy + default `full`; known conversation mode & suspension survive resume/compaction; no mode storage
 prompt-hook: `UserPromptSubmit` → catalog `additionalContext` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
 distill-invocation: `$craft:distill` sole form; `$craft:destill` exact alias; any argument → `INVALID_SCOPE`
@@ -55,7 +55,7 @@ V18: `§V` admits only a rule falsifiable by one named check; non-falsifiable co
 V20: `$craft:audit` is the sole decision-review skill, accepts any artifact with or without a ledger & separates `Confirmed` from `Lead`; `$craft:check` covers ledger-to-code conformance only
 V21: skill machine tokens ⊆ `SPEC_MISSING`, `FORMAT_MISSING`, `INVALID_SCOPE`, `TASK_NOT_FOUND`, `NO_OPEN_TASKS` + one clean sentinel per skill; every other status → plain English
 V22: Build authors artifacts without ledger references, then before final verification scans the task-owned diff & rewrites any SPEC identifier outside `SPEC.md` & exact Craft command selectors into domain meaning, running gates on the corrected diff; found reference ≠ blocker, blocked completion ⊥; coincidental `V<n>`/`T<n>` token without reference context ≠ violation
-V23: Ponytail mode changes simplification intensity only; explicit requirements, safety, verification & phase authority unchanged; check: mode scenarios
+V23: Ponytail mode/suspension changes minimalism & response guidance only; explicit requirements, safety, verification & phase authority unchanged; check: mode/suspension scenarios
 V24: SessionStart output includes complete Ponytail body within configured context limit & declares `full` only as default; check: startup hook regression
 
 §T
@@ -80,6 +80,7 @@ T19|.|Separate `Confirmed` findings from `Lead` candidates in Audit as the sole 
 T20|.|Add `§V` admission criteria & cap enforcement to Spec|V18
 T21|x|Remove all-in, full-loop, plan & critique skills, discovery/default entries, delegation paths & obsolete loop contracts; preserve remaining prompt behavior|V1,V8,V9,I.skill-policy,I.phase-authority,I.prompt-hook
 T22|x|Add Ponytail modes, preserve conversation selection on policy reload & verify unchanged scope/verification boundaries|V23,V24,I.ponytail-mode,I.session-hook,I.skill-policy
+T23|x|Add Ponytail suspension/reactivation, stop alternative research once uncertainty is resolved & prefer correct edge-case handling between equally small solutions|V23,V24,I.ponytail-mode,I.session-hook
 
 §B
 id|date|cause|fix

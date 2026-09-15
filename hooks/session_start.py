@@ -27,7 +27,8 @@ def main() -> int:
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
                 "additionalContext": (
-                    "CRAFT PONYTAIL — default: full; retain any user-selected mode.\n\n"
+                    "CRAFT PONYTAIL — default: full; retain any user-selected "
+                    "mode or suspension.\n\n"
                     f"{body}"
                 ),
             },
