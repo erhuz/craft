@@ -1,6 +1,6 @@
 {
   "name": "craft",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Specify and distill current behavior, build minimally, audit decisions, check drift, and learn from confirmed defects.",
   "author": {
     "name": "Benjamin Fransson"
