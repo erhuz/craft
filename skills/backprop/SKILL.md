@@ -1,12 +1,10 @@
 ---
 name: backprop
 description: >
-  Coordinate a confirmed defect from root-cause evidence into SPEC.md and a
-  verified fix. Use only when explicitly invoked as $craft:backprop, or when
-  $craft:build finds that the specification is missing, wrong, or allowed a
-  failed behavior. Propose semantic changes, wait for confirmation, delegate
-  them to $craft:spec, then delegate implementation and the combined commit to
-  $craft:build. Do not mutate files directly.
+  Coordinate a defect through a confirmed SPEC.md correction and verified fix
+  when explicitly invoked as $craft:backprop, or delegated by Build for missing,
+  wrong, or failure-permitting specification. Task-local implementation mistakes
+  stay in Build.
 ---
 
 # Backprop
@@ -36,8 +34,8 @@ reveals missing or wrong product knowledge.
 1. Resolve the current Git root and read only its `SPEC.md`.
 2. If absent, return `SPEC_MISSING`, suggest `$craft:spec from-code`, and stop:
    no edits, tests, or speculative invariant.
-3. Read the report or command failure, relevant code, tests, callers, state
-   ownership, and local instructions.
+3. Read the report or command failure and applicable local instructions. Follow
+   the code, tests, callers, and state ownership needed to establish its cause.
 4. Reproduce when safe and scoped, or name the exact evidence that establishes
    the failure.
 
@@ -55,7 +53,7 @@ root cause requires it; an invariant is not mandatory for a one-time migration,
 an external dependency failure, or a purely mechanical defect with no reusable
 behavioral class.
 
-## Propose and pause
+## Propose the semantic change
 
 Before any write, output:
 
@@ -70,12 +68,15 @@ Spec proposal:
 Regression: <failing test target or why no invariant/test applies>
 ```
 
-Ask for confirmation of this semantic change set. Do not edit `SPEC.md`, tests,
-or code before confirmation.
+Obtain user confirmation of this concrete semantic change set before any edits
+to `SPEC.md`, tests, or code. Use an existing confirmation when it covers the
+same proposal; ask only for a missing decision or materially changed proposal.
 
 ## Coordinate the confirmed fix
 
-After confirmation:
+Confirmation authorizes the following coordinated fix. Continue through the
+delegated phases and their verification without asking again for unchanged,
+already-authorized steps:
 
 1. Invoke `$craft:spec` with the confirmed change set. It allocates ledger IDs
    and applies semantic `SPEC.md` changes.

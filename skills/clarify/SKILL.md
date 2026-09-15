@@ -1,19 +1,16 @@
 ---
 name: clarify
 description: >
-  Write and revise technical prose with contextual explanations in place of
-  opaque jargon and vague sentences. Keep original technical phrases in
-  parentheses once per distinct meaning per section, while preserving names,
-  abbreviations, notation, and exact literals. Apply to all technical writing, including
-  explanations, reports, plans, specifications, documentation, and comments.
-  Craft loads this guidance at SessionStart; use $craft:clarify for a targeted
-  rewrite as well.
+  Clarify technical prose while preserving its meaning and exact literals.
+  Apply while drafting or revising technical writing; use $craft:clarify for
+  a targeted rewrite. Craft loads this guidance at SessionStart.
 ---
 
 # Clarify
 
 Make the meaning explicit before naming the technical concept. Apply this
-guidance while drafting and editing prose within the current request.
+guidance to all technical writing within the current request, including
+explanations, reports, plans, specifications, documentation, and comments.
 
 ## Notice missing meaning
 
@@ -29,11 +26,12 @@ do not reuse an earlier explanation merely because the wording matches.
 Reuse an explanation only when the meaning also matches. Check supplied
 examples against the current context before adapting them.
 
-Use supplied context and relevant available source evidence to establish the
-meaning. If several interpretations remain possible, identify the missing
-information instead of picking one. "Robust," "efficient," and "safe" can hide
-missing criteria; a longer synonym does not resolve that gap. Describe what is
-known and flag what remains unclear without inventing actors or guarantees.
+Use supplied context to establish the meaning; consult relevant available
+source evidence where needed. If several interpretations remain possible,
+identify the missing information instead of picking one. "Robust,"
+"efficient," and "safe" can hide missing criteria; a longer synonym does not
+resolve that gap. Describe what is known and flag what remains unclear without
+inventing actors or guarantees.
 
 ## Explain first
 
@@ -118,11 +116,11 @@ DCS; a → b; a ≠ b` unchanged. Their presence alone calls for no explanation.
 
 ## Stay within the request
 
-Return the requested text or artifact in its existing structure. Report
-unresolved meanings within that output format; do not prepend a jargon
-inventory unless requested. A review stays a review, and file edits stay within
-the authorized target. A bare invocation with no clear target asks for the text
-or artifact to clarify; it never starts a repository-wide rewrite.
+Return the requested text or artifact in its existing structure, with unresolved
+meanings reported in that format. Include a jargon inventory only when
+requested. A review stays a review, and file edits stay within the authorized
+target. A bare invocation with no clear target asks for the text or artifact to
+clarify; it never starts a repository-wide rewrite.
 
 Respect document formatting and Craft phase rules. Clarify changes wording,
 not requirements, ledger identities, task statuses, or edit authority. Other

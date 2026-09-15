@@ -1,22 +1,16 @@
 ---
 name: audit
 description: >
-  Audit decision-bearing artifacts such as proposals, specifications, system
-  and UI designs, diffs, implementations, skills, workflows, and configuration.
-  Use when explicitly invoked as $craft:audit.
-  Report only material decision-quality issues: unsupported value, invented
-  product truth, unjustified complexity, broken logic, state mismatch, false
-  completeness, missing failure behavior, and evidence gaps. Remain read-only;
-  do not praise, summarize, redesign, fix, or advance into Spec or Distill unless
-  explicitly requested.
+  Review decision-bearing artifacts for material issues in value, logic, state,
+  complexity, failure behavior, or evidence. Use when explicitly invoked as
+  $craft:audit. Read-only decision review; use Check for ledger-to-code drift.
 ---
 
 # Audit
 
-Poke holes in decisions, not authors. Never claim AI provenance without proof.
-Detect the recurring failure mode—plausible-looking choices substituted for
-product truth—by testing evidence and consequences, not by labeling aesthetics
-as “AI slop.”
+Test whether decisions reflect product truth and hold up against evidence and
+consequences. Poke holes in decisions, not authors. Never claim AI provenance
+without proof or label aesthetics as “AI slop.”
 
 Report only supported, consequential issues. Do not duplicate a general style,
 security, drift, or over-engineering review; inspect the decisions behind the
@@ -24,9 +18,9 @@ target. Stay read-only.
 
 ## Resolve scope and evidence
 
-Honor the exact target and local instructions. Inspect adjacent artifacts only
-when a material claim cannot be judged without them; do not widen into unrelated
-systems.
+Use the requested target and relevant local instructions to set the review
+boundary. Inspect adjacent artifacts only when a material claim depends on
+them; keep unrelated systems outside the review.
 
 - Proposal or spec: inspect claims, internal logic, value, scope, and stated
   evidence. Do not demand runtime proof for claims it does not make.
@@ -37,13 +31,14 @@ systems.
 - Skill, workflow, or config: inspect trigger, declared scope, decision flow,
   contracts, failure behavior, metadata, authority, and operational effects.
 
-Before reporting, identify the material in-scope claims, available evidence, and
-proof required for conclusions that cannot yet be reached. Report missing
-evidence only when a material conclusion depends on it.
+Identify the material in-scope claims and use each claim to choose the evidence
+needed to judge it. Report missing evidence only when a material conclusion
+depends on it.
 
 ## Challenge the decision
 
-Use these as search questions, never as forced labels:
+Choose the questions and review lenses relevant to the artifact; they guide
+investigation rather than require an exhaustive checklist or forced labels:
 
 - Which current user need, business premise, domain invariant, or operational
   constraint requires this?
@@ -56,8 +51,8 @@ Use these as search questions, never as forced labels:
   concurrent, retried, and partially failed execution?
 - Is present value proportional to adoption, operation, and maintenance cost?
 
-Collapse multiple symptoms into the shared bad decision. Omit harmless
-imperfections and concerns without a concrete consequence.
+Trace related symptoms to their shared decision and report that cause once.
+Omit harmless imperfections and concerns without a concrete consequence.
 
 ## Business value
 
@@ -148,6 +143,9 @@ Severity:
   core or safety claim.
 
 ## Output only issues
+
+Finish when each material in-scope claim supports a conclusion or has an
+identified evidence gap. Return the supported issues in this format:
 
 ```text
 Issues:

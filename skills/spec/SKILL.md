@@ -1,12 +1,9 @@
 ---
 name: spec
 description: >
-  Create or amend the repository-root SPEC.md, bootstrap one from current code,
-  and apply a confirmed backprop change set. Use only when explicitly invoked
-  as $craft:spec for a new specification, from-code bootstrap, a targeted
-  section amendment, or a semantic spec update proposed by $craft:backprop.
-  This skill owns semantic SPEC.md content; it does not implement code, run
-  builds, or commit.
+  Create, bootstrap, or amend repository-root SPEC.md when explicitly invoked
+  as $craft:spec, including confirmed Backprop proposals. Own semantic ledger
+  content; implementation belongs to a separate phase.
 ---
 
 # Spec
@@ -44,7 +41,9 @@ this skill's workflow.
 - Raw bug or failed verification supplied: recommend an explicit
   `$craft:backprop` invocation; do not invoke Backprop or Build, and do not turn
   an untraced symptom directly into an invariant.
-- Missing or ambiguous input: ask one focused question and write nothing.
+- Missing or ambiguous input: use supplied context and scoped read-only
+  inspection to resolve it where possible. If a material ambiguity remains,
+  ask one focused question and write nothing.
 
 ## Create
 
@@ -63,9 +62,11 @@ Build automatically.
 
 ## Bootstrap from code
 
-Inspect the README, manifests, entry points, public interfaces, migrations,
-tests, assertions, and known TODOs. Derive observed behavior rather than an
-aspirational rewrite:
+Choose source evidence for the claims being established: README, manifests, and
+entry points for product and stack; public interfaces and migrations for
+contracts; tests, assertions, and implementation for behavior; known TODOs for
+unfinished work. Follow relevant callers when a claim needs more context.
+Derive observed behavior rather than an aspirational rewrite:
 
 - `§G` from the current product outcome.
 - `§C` from actual stack and operational constraints.
@@ -97,7 +98,15 @@ Require all of the following before writing:
 
 Allocate final IDs from the current ledger, append the `§B` row, add only
 confirmed semantic changes, and return the applied SPEC diff to Backprop. Do
-not edit code or commit.
+not edit code or commit. Existing confirmation of that same change set is
+sufficient; ask again only if a material semantic choice has changed or remains
+unresolved.
+
+## Completion
+
+Finish the requested semantic change, review its section placement, IDs, and
+references for consistency, and show the resulting diff. Completion ends at
+`SPEC.md`; implementation requires its own phase authorization.
 
 ## Boundaries
 

@@ -1,12 +1,9 @@
 ---
 name: build
 description: >
-  Plan and implement explicitly requested tasks from one or more SPEC.md
-  ledgers in one native single-thread loop. Use when explicitly invoked as
-  $craft:build with any task, selector, path, ledger set, or natural-language
-  scope. Own code, tests, verification,
-  task status, exact staging, and each task commit. Route semantic spec failures
-  through $craft:backprop and $craft:spec.
+  Implement and verify tasks from one or more SPEC.md ledgers when explicitly
+  invoked as $craft:build. Resolve the requested scope, then complete each task
+  through its status update and scoped commit in a single-threaded workflow.
 ---
 
 # Build
@@ -50,8 +47,9 @@ this skill's workflow.
    - absent ID → return `TASK_NOT_FOUND` and stop;
    - `x` → report the task as already complete, treat it as a per-task strict
      no-op, and continue preflighting other requested tasks.
-5. Read local instructions and `FORMAT.md` for every selected ledger when
-   present, plus the contract in `../caveman/SKILL.md`.
+5. Read local instructions that apply to each selected ledger and the contract
+   in `../caveman/SKILL.md`. Read its root `FORMAT.md` when present and apply
+   that local override.
 6. Inspect Git status for every selected ledger before selecting work. Preserve
    unrelated user changes.
 
@@ -78,18 +76,21 @@ Never require attribution to an earlier session before continuing.
 
 ## Plan
 
-Trace the task through current callers and state ownership. Produce the smallest
-executable plan that names:
+Trace the task through the callers and state ownership needed to understand the
+change. Keep the executable plan proportional to the task, covering:
 
 - exact Build command selector, selected goal, and applicable invariant text;
 - touched interface contracts by domain meaning;
 - exact files expected to change;
-- one smallest regression or behavior check per non-trivial rule;
+- the smallest existing or new regression or behavior check for each non-trivial
+  rule;
 - focused and final verification commands.
 
-The explicit Build invocation authorizes this scoped plan. Pause only for a new
-product decision, external side effect, missing permission, or meaningful scope
-expansion.
+The explicit Build invocation authorizes this scoped plan through implementation,
+verification, correction of task-local mistakes, and the task commit. Continue
+without renewed approval for those steps. Ask only when a necessary product
+decision, external side effect, permission, or scope expansion falls outside the
+existing authorization; name that boundary precisely.
 
 ## Implementation artifact contract
 
@@ -143,9 +144,12 @@ For each selected task:
 1. Change only its status cell from `.` to `~`.
 2. Implement the root behavior at the shared ownership point using the selected
    Ponytail mode.
-3. Add the smallest runnable check that would fail for the defect or behavior.
+3. Use an existing runnable check that would fail for the defect or missing
+   behavior, or add the smallest check needed to establish it.
 4. Run the focused check, then the repository's required test, check, lint, or
-   build gates in the task's scope.
+   build gates in the task's scope. Reuse passing results for the same unchanged
+   task state; repeat checks when changes, failures, or unresolved concerns
+   invalidate that evidence.
 5. On success, change only the status cell from `~` to `x`.
 6. Review the final diff, stage the selected task files plus `SPEC.md` while
    preserving their baseline content, run staged whitespace/name checks for
@@ -194,7 +198,8 @@ Mark and commit a task complete only when:
 
 - Only task status cells may be changed directly in `SPEC.md`; all semantic
   changes go through `$craft:spec`.
-- No sub-agents, parallel workers, progress dashboards, or speculative work.
+- Keep execution in one native thread, without sub-agents, parallel workers,
+  progress dashboards, or speculative work.
 - The explicit Build request defines ledger and task scope. Never widen beyond
   its resolved targets into other repositories, services, deployments, or
   provider state.

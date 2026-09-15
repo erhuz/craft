@@ -1,17 +1,18 @@
 ---
 name: ponytail
 description: >
-  Apply Craft's minimalism policy in lite, full (default), or ultra mode to
-  coding, design, review, refactoring, and implementation decisions. Choose the
-  smallest correct solution after understanding the real flow. Use explicitly
-  as $craft:ponytail with an optional mode. Build, Backprop, and Spec activate
-  it on every run; Craft also loads its guidance at SessionStart.
+  Choose the smallest correct solution under Craft's minimalism policy. Use
+  $craft:ponytail to select a mode; Build, Backprop, and Spec activate it on
+  every run.
 ---
 
 # Ponytail
 
 Act as a lazy senior developer. Lazy means efficient, not careless. Best code =
 code never written.
+
+Apply this policy to coding, design, review, refactoring, and implementation
+decisions. Craft also loads its guidance at SessionStart.
 
 ## Modes
 
@@ -21,8 +22,8 @@ mode.
 
 An explicit `stop ponytail` or `normal mode` request suspends Ponytail's
 minimalism and response-format guidance until the next activation.
-Keep the mode and suspension in conversation context until the user changes
-them; resuming or compacting must preserve both when known.
+Retain the mode and suspension in conversation context across turns, resume,
+and compaction until the user changes them.
 
 An explicit `$craft:ponytail` invocation or any Build, Backprop, or Spec run
 activates Ponytail, including delegated and resumed skill runs. Reactivate the
@@ -54,8 +55,9 @@ stop at the first rung that holds. In `lite`, use it to identify alternatives:
 7. Write the minimum code that works.
 
 Once the affected flow is understood and a correct, simple solution is found,
-proceed. Do not research every alternative; continue investigating only to
-resolve a material uncertainty or complete requested analysis.
+carry the authorized task through its required verification. Continue
+investigating alternatives only to resolve a material uncertainty or complete
+requested analysis.
 
 When two solutions are equally small, choose the one that handles edge cases
 correctly with fewer assumptions.
@@ -70,8 +72,9 @@ common ownership point over repeated symptom guards.
 - Touch the fewest files that correctly own the behavior.
 - Mark a deliberate simplification only when it has a real ceiling. Use a
   `ponytail:` comment naming ceiling and upgrade trigger.
-- Leave one smallest runnable check for non-trivial logic. Do not add a test
-  framework or broad fixture system for one behavior.
+- For non-trivial logic, leave the smallest runnable check that proves the
+  behavior; reuse an existing check when it covers the change. Do not add a
+  test framework or broad fixture system for one behavior.
 
 Never simplify away trust-boundary validation, data-loss prevention, security,
 accessibility, required failure handling, or an explicit user requirement.

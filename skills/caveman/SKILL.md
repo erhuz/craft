@@ -1,24 +1,30 @@
 ---
 name: caveman
 description: >
-  Encode SPEC.md, invariants, interfaces, tasks, and bug entries with compact,
-  precise Caveman syntax. Use for Craft's spec-adjacent writes or explicitly as
-  $craft:caveman. Do not apply it to ordinary explanations, code, errors,
-  commits, or pull requests.
+  Encode Craft's SPEC.md and spec-adjacent writes with compact, precise syntax,
+  or invoke explicitly as $craft:caveman. Ordinary explanations, code, errors,
+  commits, and pull requests keep their normal format.
 ---
 
 # Caveman
 
-Use this contract as default for `SPEC.md`. If repository root contains
-`FORMAT.md`, read it and apply it as stricter local override.
+Use this contract as the default for `SPEC.md`, including invariants, interfaces,
+tasks, and bug entries. If the repository root contains `FORMAT.md`, read it and
+apply it as the stricter local override. Apply the encoding within the current
+workflow's authorized writes.
 
 ## Grammar
 
-- Drop articles, filler, pleasantries, hedging, and optional auxiliary verbs.
+- Drop articles, filler, pleasantries, empty hedging, and optional auxiliary verbs.
 - Use fragments and short imperative verbs when meaning remains exact.
+- Clarity wins over brevity. Keep conditions and step order unambiguous.
+- Use the same term for the same thing; do not rotate synonyms.
+- Keep correct grammar when equally concise. Never add words or distort grammar
+  merely to sound Caveman.
 - Preserve code, paths, URLs, identifiers, versions, numbers, error strings,
   SQL, regex, JSON, YAML, and quoted text verbatim.
-- Keep any word whose removal loses a fact.
+- Keep any word whose removal loses a fact or uncertainty. Preserve negation and
+  qualifiers such as `not`, `never`, `no`, `only`, and `except`.
 
 Prefer symbols: `→` leads to, `∴` therefore, `∀` every, `∃` exists, `!`
 required, `?` optional or unknown, `⊥` forbidden, `≠` differs, `∈` in, `∉`
@@ -26,7 +32,7 @@ not in, `≤`, `≥`, `&`, `|`, `§` section.
 
 ## SPEC shape
 
-Keep sections in order:
+Preserve this section order and row schema:
 
 ```text
 §G

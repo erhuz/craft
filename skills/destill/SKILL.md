@@ -1,14 +1,14 @@
 ---
 name: destill
 description: >
-  Explicit compatibility alias for the canonical $craft:distill workflow. Use
-  only when invoked exactly as $craft:destill to preview and confirm compaction
-  of an existing repository-root SPEC.md. Skill metadata registers one name,
-  so this separate selector only delegates; it contains no independent
-  distillation behavior and changes no files outside the canonical contract.
+  Delegate exact $craft:destill invocations to the canonical $craft:distill
+  preview-and-confirm workflow for an existing repository-root SPEC.md.
 ---
 
 # Destill alias
+
+Skill metadata registers one name, so this alias delegates all behavior to
+Distill. It has no independent rewrite, permission, or output contract.
 
 1. Accept only the exact trimmed command `$craft:destill` with no arguments;
    otherwise return `INVALID_SCOPE` before repository inspection or writes.

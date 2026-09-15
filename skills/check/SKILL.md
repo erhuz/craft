@@ -1,17 +1,17 @@
 ---
 name: check
 description: >
-  Reconcile the repository-root SPEC.md with current code read-only. Use when
-  explicitly invoked as $craft:check to check
-  current §G, §C, §I, §V, and §T truth, narrow the scan to one of those
-  sections, or verify one or more task IDs and their cited contracts. Report
-  evidence and remedy hints; never write or invoke another Craft phase.
+  Compare repository-root SPEC.md with current code and report drift, evidence
+  gaps, and remedy hints. Use when explicitly invoked as $craft:check for the
+  current ledger, one supported section, or selected task IDs. Read-only.
 ---
 
 # Check
 
-Compare the ledger with implementation reality. Report mismatches; let the user
-decide whether code or specification must change.
+Establish whether the selected ledger claims match implementation reality.
+Report mismatches with evidence and remedy hints; the user decides whether
+code or specification must change. Check never writes or invokes another
+Craft phase.
 
 ## Load
 
@@ -31,18 +31,20 @@ decide whether code or specification must change.
    exists; otherwise read all of `../caveman/SKILL.md`.
 5. If the selected format contract is missing or unreadable, return
    `FORMAT_MISSING` and stop.
-6. Read relevant local instructions, then inspect git status and relevant diffs
-   to distinguish worktree changes from committed state.
+6. Use relevant local instructions, git status, and relevant diffs to
+   distinguish worktree changes from committed state.
 
 ## Establish evidence
 
-Translate each selected ledger item into an observable claim. Inspect only the
-relevant public entry points, callers, state owners, configuration, migrations,
-tests, and assertions. Do not infer behavior from names or comments alone.
+Translate each selected ledger item into an observable claim, then let that
+claim determine which public entry points, callers, state owners,
+configuration, migrations, tests, and assertions need inspection. Names and
+comments alone do not establish behavior.
 
-For every reported finding, cite the `SPEC.md` item and exact `path:line`
-evidence. For absence or missing proof, name the searched paths, identifiers, or
-commands that establish the boundary.
+Gather enough evidence to classify each selected item without widening beyond
+its claim. For every reported finding, cite the `SPEC.md` item and exact
+`path:line` evidence. For absence or missing proof, name the searched paths,
+identifiers, or commands that establish the boundary.
 
 Label each finding:
 
@@ -112,9 +114,10 @@ unfinished work is neither `INCOMPLETE` nor a finding.
 
 ## Report
 
-Group findings under `§G`, `§C`, `§I`, `§V`, and `§T`. Omit `HOLD`, `MATCH`,
-`VERIFIED`, and expected-open task lines but count them in the summary.
-Report evidence gaps separately from drift.
+Finish when every selected item has a supported classification or an explicit
+evidence gap. Group findings under `§G`, `§C`, `§I`, `§V`, and `§T`. Omit
+`HOLD`, `MATCH`, `VERIFIED`, and expected-open task lines but count them in the
+summary. Report evidence gaps separately from drift.
 
 ```text
 §G

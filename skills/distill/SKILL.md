@@ -1,19 +1,17 @@
 ---
 name: distill
 description: >
-  Compact and refine an existing repository-root SPEC.md to current intended
-  truth and open work. Use only when explicitly invoked as $craft:distill to
-  remove proven obsolete, duplicate, reverted, completed, or resolved ledger
-  history through a preview-and-confirm rewrite. $craft:destill is the explicit
-  compatibility alias. Surviving identifiers never change, and this skill never
-  implements, tests, commits, or treats current code as product truth without
-  operator input.
+  Compact an existing repository-root SPEC.md through an evidence-backed preview
+  and explicit confirmation. Use only for exact $craft:distill;
+  $craft:destill is the explicit compatibility alias.
 ---
 
 # Distill
 
-Compact an existing ledger without erasing current intent. Treat the first
-invocation as analysis and the confirmed second turn as the only write gate.
+Refine the ledger to current intended truth and open work. The first invocation
+authorizes analysis and a complete preview; explicit confirmation of that
+preview on a later turn is the only write gate. Current code alone cannot
+redefine product intent.
 
 ## Parse scope
 
@@ -26,8 +24,9 @@ invocation as analysis and the confirmed second turn as the only write gate.
 ## Load the ledger
 
 1. Resolve the current Git root. If none exists, use the current directory.
-2. Read only `<root>/SPEC.md`. If absent, return `SPEC_MISSING`, suggest
-   `$craft:spec from-code`, and stop before code inspection or writes.
+2. Use only `<root>/SPEC.md` as the ledger and read it in full. If absent, return
+   `SPEC_MISSING`, suggest `$craft:spec from-code`, and stop before code inspection
+   or writes.
 3. Load exactly one format contract: read all of `<root>/FORMAT.md` when it
    exists; otherwise read all of `../caveman/SKILL.md`.
 4. If the selected contract is missing or unreadable, return `FORMAT_MISSING`
@@ -51,10 +50,12 @@ date, and the preview's Remove list already names every such identifier.
 
 ## Establish current truth
 
-Read the complete ledger, then inspect only evidence needed to judge its current
-meaning: README and product documentation, manifests, public entry points and
-callers, state ownership, persistence and migrations, tests and assertions, and
-current TODOs.
+Use the complete ledger to identify claims that may need compaction. Choose
+evidence for each decision and its dependencies: README and product documentation
+for intent; manifests, public entry points, and callers for interfaces; state
+ownership, persistence, and migrations for stored behavior; tests and assertions
+for expected behavior; current TODOs for unfinished work. Expand inspection when
+an unresolved decision needs more evidence.
 
 - Treat current operator decisions, the ledger's intended behavior, and open
   work as product intent.
@@ -131,9 +132,10 @@ Otherwise return the preview with:
 4. every removed `V`, `T`, and `B` identifier, plus any changed `§I` key mapping;
 5. complete candidate ledger text.
 
-Ask for explicit confirmation of that exact change set only after every semantic
-question has an explicit answer. Write nothing on the preview turn. Any answer
-or correction creates a new preview and invalidates the old one.
+Complete the evidence review and candidate ledger before asking for explicit
+confirmation of that exact change set, and only after every semantic question
+has an explicit answer. Write nothing on the preview turn. Any answer or
+correction creates a new preview and invalidates the old one.
 
 ## Apply the confirmed preview
 
@@ -144,6 +146,9 @@ regenerate it.
 
 If any semantic question remains unanswered, name each unanswered choice and
 write nothing. A general confirmation never substitutes for a missing choice.
+
+Once the exact preview is confirmed and these checks pass, apply it without
+requesting another approval for the same change set.
 
 Replace `SPEC.md` atomically with the confirmed content in one write, making no
 new semantic decision during application. Create no staging, candidate,
