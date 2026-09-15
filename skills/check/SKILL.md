@@ -2,7 +2,7 @@
 name: check
 description: >
   Reconcile the repository-root SPEC.md with current code read-only. Use when
-  explicitly invoked as $craft:check or delegated by $craft:full-loop to check
+  explicitly invoked as $craft:check to check
   current §G, §C, §I, §V, and §T truth, narrow the scan to one of those
   sections, or verify one or more task IDs and their cited contracts. Report
   evidence and remedy hints; never write or invoke another Craft phase.
@@ -101,24 +101,19 @@ Classify every selected invariant:
 Classify task claims against implementation evidence:
 
 - `VERIFIED`: an `x` task has concrete implementation or proof;
-- `READY`: a selected `~` task has an unchanged Full Loop review handoff,
-  concrete implementation proof, passing required gates, and holding cited
-  contracts;
 - `INCOMPLETE`: a specifically selected open task has direct evidence that its
   required outcome is absent or partial;
 - `STALE`: status contradicts direct evidence, including an `x` task whose
-  required work is absent or an open task whose full outcome is already proven
-  outside a valid Full Loop handoff;
+  required work is absent or an open task whose full outcome is already proven;
 - `UNVERIFIABLE`: task wording cannot be mapped to sufficient evidence.
 
 An open `.` or `~` status alone is not drift. In a whole-section scan, expected
-unfinished work is neither `INCOMPLETE` nor a finding. A `READY` classification
-requires the supplied handoff; an ordinary `~` task is never presumed ready.
+unfinished work is neither `INCOMPLETE` nor a finding.
 
 ## Report
 
 Group findings under `§G`, `§C`, `§I`, `§V`, and `§T`. Omit `HOLD`, `MATCH`,
-`VERIFIED`, `READY`, and expected-open task lines but count them in the summary.
+`VERIFIED`, and expected-open task lines but count them in the summary.
 Report evidence gaps separately from drift.
 
 ```text
@@ -138,13 +133,13 @@ I.api DRIFT [worktree] `route.go:112` returns `{result}`, not `{id}`.
 §T
 T3 STALE [committed] `SPEC.md:31` is `x`; required middleware is absent from `auth/**`.
 
-summary: 4 drift; 1 stale; 1 unverifiable; 8 hold/match/verified/ready.
+summary: 4 drift; 1 stale; 1 unverifiable; 8 hold/match/verified.
 next: <one read-only remedy hint per reported class>
 ```
 
 If any selected item is `DRIFT`, `VIOLATE`, `MISSING`, `EXTRA`, `STALE`,
 `INCOMPLETE`, or `UNVERIFIABLE`, do not output the clean sentinel. If every
-selected item holds, matches, verifies, is ready, or is legitimately expected
+selected item holds, matches, verifies, or is legitimately expected
 open work, output only:
 
 `No drift found.`

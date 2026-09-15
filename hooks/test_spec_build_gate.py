@@ -30,6 +30,15 @@ class CraftPromptRouterTest(unittest.TestCase):
         for skill in sorted((root / "skills").glob("*/SKILL.md")):
             self.assertIn(f"`$craft:{skill.parent.name}` — ", catalog)
 
+        plugin_defaults = json.loads(
+            (root / ".codex-plugin" / "plugin.json").read_text()
+        )["interface"]["defaultPrompt"]
+        for removed in ("all-in", "full-loop", "plan", "critique"):
+            with self.subTest(removed=removed):
+                self.assertFalse((root / "skills" / removed).exists())
+                self.assertNotIn(f"$craft:{removed}", catalog)
+                self.assertNotIn(f"$craft:{removed}", "\n".join(plugin_defaults))
+
         hooks = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"]
         for event_name, groups in hooks.items():
             for group in groups:
@@ -49,7 +58,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         prompts = (
             "$CRAFT",
             "$craft --help",
-            "$craft:plan",
+            "$craft:spec",
             "show $craft",
             "$craft\nanything",
             "$craft.",
@@ -60,7 +69,7 @@ class CraftPromptRouterTest(unittest.TestCase):
                 self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
 
     def test_semantic_phase_prompts_pass_through_ungated(self) -> None:
-        """Leave Plan, Spec, and Distill prompts untouched.
+        """Leave Spec and Distill prompts untouched.
 
         Authorization lives in the explicit skill invocation, so the router
         must inject no context and record no state for a semantic phase, in
@@ -75,17 +84,17 @@ class CraftPromptRouterTest(unittest.TestCase):
             "cwd": "/tmp",
         }
         prompts = (
-            "$craft:plan",
+            "$craft:spec",
             "$craft:spec amend constraints",
             "$craft:distill",
             "$craft:destill",
             "$craft:destill ",
-            "\n\t$craft:plan\nexplore order imports",
-            '"$craft:plan"',
+            "\n\t$craft:spec\nexplore order imports",
+            '"$craft:spec"',
             "prefix$craft:spec suffix",
-            "Use $craft:plan to research order imports.",
+            "Use $craft:spec to define order imports.",
             "Do not run $craft:spec amend constraints",
-            "$craft:plan.",
+            "$craft:spec.",
             "$Craft:spec amend constraints",
         )
 
@@ -106,7 +115,6 @@ class CraftPromptRouterTest(unittest.TestCase):
             "IMPLEMENT_PLAN_PROMPTS",
             "PHASE_STATE_FAILURE_REASON",
             "IMPLEMENTATION_INVOCATION",
-            "INVALID_FULL_LOOP_SCOPE_REASON",
         ):
             with self.subTest(removed=removed):
                 self.assertFalse(hasattr(spec_build_gate, removed))
@@ -136,7 +144,7 @@ class CraftPromptRouterTest(unittest.TestCase):
 
         with patch.dict(os.environ, {}, clear=True):
             spec_build_gate.handle(
-                {**event, "prompt": "$craft:plan explore order imports"}
+                {**event, "prompt": "$craft:spec define order imports"}
             )
             for prompt in prompts:
                 with self.subTest(prompt=prompt):
@@ -175,12 +183,11 @@ class CraftPromptRouterTest(unittest.TestCase):
                     )
 
     def test_implementation_prompts_are_never_rejected_by_shape(self) -> None:
-        """Keep both implementation commands out of the router's way.
+        """Keep Build scope resolution out of the router's way.
 
-        Build and Full Loop each resolve their own scope by reading the
-        repository, so the router has no basis to judge a tail and must not
-        cost the user a prompt over wording it cannot evaluate. The Full Loop
-        tails below were rejected while only Build accepted a free tail.
+        Build resolves its scope by reading the repository, so the router has
+        no basis to judge a tail and must not cost the user a prompt over
+        wording it cannot evaluate.
         """
 
         event = {
@@ -202,13 +209,6 @@ class CraftPromptRouterTest(unittest.TestCase):
             '"$craft:build --next"',
             "Use $craft:build --next to implement the next task.",
             "$craft:build.",
-            "$craft:full-loop",
-            "$craft:full-loop --next --loop",
-            "$craft:full-loop --max 2",
-            "$craft:full-loop T1 --all",
-            "$craft:full-loop --unknown",
-            "$craft:full-loop --all --loop --max 2 in packages/api",
-            "$craft:full-loop the remaining checkout tasks",
         )
 
         with patch.dict(os.environ, {}, clear=True):
@@ -234,12 +234,11 @@ class CraftPromptRouterTest(unittest.TestCase):
             "cwd": "/tmp",
         }
         prompts = (
-            "$craft:plan",
+            "$craft:spec",
             "$craft:spec amend constraints",
             "$craft:distill",
             "$craft:destill",
             "$craft:build --next",
-            "$craft:full-loop --next --loop",
             "Implement plan",
             "Explain the plan",
         )
@@ -253,17 +252,14 @@ class CraftPromptRouterTest(unittest.TestCase):
 
     def test_implementation_defaults_are_canonical_invocations(self) -> None:
         root = Path(__file__).resolve().parents[1]
-        agent_defaults = []
-        for name in ("build", "full-loop"):
-            metadata = (
-                root / "skills" / name / "agents" / "openai.yaml"
-            ).read_text()
-            raw = next(
-                line.split(":", 1)[1].strip()
-                for line in metadata.splitlines()
-                if line.strip().startswith("default_prompt:")
-            )
-            agent_defaults.append(json.loads(raw))
+        metadata = (
+            root / "skills" / "build" / "agents" / "openai.yaml"
+        ).read_text()
+        raw = next(
+            line.split(":", 1)[1].strip()
+            for line in metadata.splitlines()
+            if line.strip().startswith("default_prompt:")
+        )
 
         plugin_defaults = json.loads(
             (root / ".codex-plugin" / "plugin.json").read_text()
@@ -271,10 +267,10 @@ class CraftPromptRouterTest(unittest.TestCase):
         implementation_defaults = [
             prompt
             for prompt in plugin_defaults
-            if "$craft:build" in prompt or "$craft:full-loop" in prompt
+            if "$craft:build" in prompt
         ]
 
-        self.assertCountEqual(agent_defaults, implementation_defaults)
+        self.assertEqual([json.loads(raw)], implementation_defaults)
         for prompt in implementation_defaults:
             with self.subTest(prompt=prompt):
                 self.assertIsNone(
@@ -292,7 +288,7 @@ class CraftPromptRouterTest(unittest.TestCase):
 
         root = Path(__file__).resolve().parents[1]
         agent_defaults = []
-        for name in ("plan", "spec", "distill"):
+        for name in ("spec", "distill"):
             metadata = (
                 root / "skills" / name / "agents" / "openai.yaml"
             ).read_text()
@@ -303,7 +299,7 @@ class CraftPromptRouterTest(unittest.TestCase):
             )
             agent_defaults.append(json.loads(raw))
 
-        expected = ["$craft:plan", "$craft:spec", "$craft:distill"]
+        expected = ["$craft:spec", "$craft:distill"]
         self.assertEqual(agent_defaults, expected)
 
         plugin_defaults = json.loads(
@@ -513,7 +509,6 @@ class CraftSkillPolicyTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         build = (root / "skills" / "build" / "SKILL.md").read_text()
         backprop = (root / "skills" / "backprop" / "SKILL.md").read_text()
-        full_loop = (root / "skills" / "full-loop" / "SKILL.md").read_text()
         artifact = " ".join(
             build.partition("## Implementation artifact contract")[2]
             .partition("\n## ")[0]
@@ -551,7 +546,6 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertIn("Feature commit: `build: <goal>`", build)
         self.assertIn("`fix: <root cause>`", build)
         self.assertIn("commit: `fix: <root cause>`", backprop)
-        self.assertIn("task goals, commit SHAs", full_loop)
         self.assertNotIn("Feature commit: `T<n>:", build)
         self.assertNotIn("commit: `backprop B<n>", backprop)
 
@@ -570,37 +564,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
             normalized,
         )
 
-    def test_full_loop_accepts_a_free_tail_like_build(self) -> None:
-        """Give both implementation commands the same request grammar.
-
-        Full Loop rejected any tail outside a fixed selector list while Build
-        accepted anything resolvable, so the same phrasing worked for one and
-        failed for the other with no stated reason.
-        """
-
-        root = Path(__file__).resolve().parents[1]
-        full_loop = " ".join(
-            (root / "skills" / "full-loop" / "SKILL.md").read_text().split()
-        )
-
-        for contract in (
-            "Treat exact first token `$craft:full-loop` as coordination "
-            "authorization",
-            "Do not apply an argument whitelist or reject a tail solely because "
-            "of command shape",
-            "resolving it into concrete ledgers and tasks by Build's "
-            "request-interpretation and ledger-resolution rules",
-            "paths, ledgers, or natural-language scope",
-            "Treat no remaining scope as `--next`",
-            "Multiple ledgers or selector clauses",
-        ):
-            with self.subTest(contract=contract):
-                self.assertIn(contract, full_loop)
-
-        self.assertNotIn("Accept only:", full_loop)
-        self.assertNotIn("Reject mixed selectors", full_loop)
-
-    def test_build_and_full_loop_share_next_task_precedence(self) -> None:
+    def test_build_preserves_next_task_precedence(self) -> None:
         root = Path(__file__).resolve().parents[1]
         cases = (
             (
@@ -612,16 +576,15 @@ class CraftSkillPolicyTest(unittest.TestCase):
             ("closed", "If no `.` or `~` task exists, strict no-op."),
         )
 
-        for skill_name in ("build", "full-loop"):
-            skill = (root / "skills" / skill_name / "SKILL.md").read_text()
-            selection = skill.partition("## Select")[2].partition("\n## ")[0]
-            normalized = " ".join(selection.split())
-            positions = []
-            for case, expected in cases:
-                with self.subTest(skill=skill_name, case=case):
-                    self.assertIn(expected, normalized)
-                    positions.append(normalized.index(expected))
-            self.assertEqual(positions, sorted(positions))
+        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        selection = skill.partition("## Select")[2].partition("\n## ")[0]
+        normalized = " ".join(selection.split())
+        positions = []
+        for case, expected in cases:
+            with self.subTest(case=case):
+                self.assertIn(expected, normalized)
+                positions.append(normalized.index(expected))
+        self.assertEqual(positions, sorted(positions))
 
     def test_spec_raw_defects_preserve_explicit_phase_authority(self) -> None:
         root = Path(__file__).resolve().parents[1]
@@ -658,34 +621,6 @@ class CraftSkillPolicyTest(unittest.TestCase):
             with self.subTest(skill=skill.parent.name):
                 found = set(sentinel_shape.findall(skill.read_text()))
                 self.assertEqual(found - allowed, set())
-
-    def test_review_results_are_judged_rather_than_string_matched(self) -> None:
-        """Stop a reworded clean review from failing the finalization gate.
-
-        Both reviewers previously had to emit one byte-exact sentence, so any
-        hedge or rewording stalled a finished task. Pin the judged wording on
-        the coordinator side and on the side that finalizes the commit.
-        """
-
-        root = Path(__file__).resolve().parents[1]
-        full_loop = (root / "skills" / "full-loop" / "SKILL.md").read_text()
-        build = (root / "skills" / "build" / "SKILL.md").read_text()
-
-        self.assertIn(
-            "Pass only when both reviewers report nothing left to change",
-            " ".join(full_loop.split()),
-        )
-        self.assertIn(
-            "Judge each report on its content, not on matching a fixed string",
-            " ".join(full_loop.split()),
-        )
-        self.assertIn(
-            "Judge that report on its content rather than matching a fixed "
-            "string",
-            " ".join(build.split()),
-        )
-        self.assertNotIn("outputs exactly", full_loop)
-        self.assertNotIn("exact clean", build)
 
     def test_explicit_only_skills_disable_implicit_invocation(self) -> None:
         root = Path(__file__).resolve().parents[1]

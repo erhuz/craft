@@ -4,7 +4,7 @@ description: >
   Plan and implement explicitly requested tasks from one or more SPEC.md
   ledgers in one native single-thread loop. Use when explicitly invoked as
   $craft:build with any task, selector, path, ledger set, or natural-language
-  scope, or when delegated by $craft:full-loop. Own code, tests, verification,
+  scope. Own code, tests, verification,
   task status, exact staging, and each task commit. Route semantic spec failures
   through $craft:backprop and $craft:spec.
 ---
@@ -82,9 +82,9 @@ executable plan that names:
 - one smallest regression or behavior check per non-trivial rule;
 - focused and final verification commands.
 
-The explicit Build invocation, or a task delegated by an explicit Full Loop
-invocation, authorizes this scoped plan. Pause only for a new product decision,
-external side effect, missing permission, or meaningful scope expansion.
+The explicit Build invocation authorizes this scoped plan. Pause only for a new
+product decision, external side effect, missing permission, or meaningful scope
+expansion.
 
 ## Implementation artifact contract
 
@@ -158,31 +158,6 @@ Feature commit: `build: <goal>`. A Backprop fix commits spec, test, and code
 together as `fix: <root cause>`. Keep the subject and body free of ledger
 identifiers.
 
-## Full Loop handoff
-
-Direct Build invocations keep the Execute flow above. When delegated by Full
-Loop, split ownership into review and finalization:
-
-1. In review mode, perform Execute steps 1–4, leave the task `~`, and do not
-   stage or commit.
-2. Return a review handoff carrying the exact delegated Build command selector,
-   selected goal and applicable contract text without ledger labels, baseline
-   `HEAD`, exact task-owned paths and diff, and focused plus final gate commands
-   and results. Say plainly that the slice is ready for review and uncommitted.
-3. If Full Loop returns review findings, classify them through Failure routing,
-   repair only the authorized task slice, rerun its gates, and return a fresh
-   handoff. Any code, test, interface, or semantic spec edit invalidates prior
-   review results.
-4. Finalize only when Full Loop reports that review found nothing to change for
-   the unchanged handoff. Judge that report on its content rather than matching
-   a fixed string. Verify baseline `HEAD`, task-owned diff, and
-   unrelated dirty paths; then perform Execute steps 5–6 and return the commit
-   SHA. The `~` → `x` status edit is the only expected post-review content
-   change before staging.
-
-Never accept one reviewer, summarized success, or stale review evidence as the
-finalization gate. A clean handoff without its commit remains incomplete.
-
 ## Failure routing
 
 Classify before retrying:
@@ -209,9 +184,6 @@ Mark and commit a task complete only when:
 - applicable invariants remain true;
 - the task commit contains only intended files;
 - unrelated baseline worktree bytes and index entries remain unchanged.
-
-When delegated by Full Loop, also require that the handoff evidence is unchanged
-and that the coordinator reports a review with nothing left to change.
 
 ## Boundaries
 

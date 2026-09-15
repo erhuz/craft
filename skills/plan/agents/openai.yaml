@@ -1,6 +1,0 @@
-interface:
-  display_name: "Plan"
-  short_description: "Turn rough ideas into implementation-ready plans"
-  default_prompt: "$craft:plan"
-policy:
-  allow_implicit_invocation: false

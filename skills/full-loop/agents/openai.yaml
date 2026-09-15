@@ -1,6 +1,0 @@
-interface:
-  display_name: "Full Loop"
-  short_description: "Build, audit, and check spec tasks to completion"
-  default_prompt: "$craft:full-loop --next --loop"
-policy:
-  allow_implicit_invocation: false

@@ -155,7 +155,7 @@ removed counts.
 
 - Semantic `SPEC.md` rewrite only; no code, test, format, generated file, Git
   staging, commit, push, deployment, provider, or installed-plugin mutation.
-- No automatic Spec, Check, Backprop, Build, or Full Loop invocation.
+- No automatic Spec, Check, Backprop, or Build invocation.
 - No sub-agents, auxiliary archive, dashboard, history file, or hidden state.
 - Never delete uncertainty to reduce characters. Retain it until evidence or an
   operator decision resolves it.
