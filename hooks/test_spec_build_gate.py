@@ -5,18 +5,20 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import session_start
 import spec_build_gate
 
 
 class CraftPromptRouterTest(unittest.TestCase):
-    def test_startup_loads_complete_policy_without_forcing_a_mode(self) -> None:
-        """Keep mode choices and safety rules available when a session reloads."""
+    def test_startup_loads_complete_policies_without_forcing_a_mode(self) -> None:
+        """Keep both policies complete and preserve mode choices on every reload."""
 
         root = Path(__file__).resolve().parents[1]
         result = subprocess.run(
@@ -28,17 +30,112 @@ class CraftPromptRouterTest(unittest.TestCase):
         )
         output = json.loads(result.stdout)
         context = output["hookSpecificOutput"]["additionalContext"]
-        header, body = context.split("\n\n", 1)
-        policy = (root / "skills" / "ponytail" / "SKILL.md").read_text()
-        limit = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"][
+        ponytail = (root / "skills" / "ponytail" / "SKILL.md").read_text()
+        clarify = (root / "skills" / "clarify" / "SKILL.md").read_text()
+        startup = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"][
             "SessionStart"
-        ][0]["hooks"][0]["additionalContextLimit"]
+        ]
 
-        self.assertEqual(output["systemMessage"], "CRAFT:PONYTAIL")
-        self.assertIn("default: full", header)
-        self.assertEqual(body, policy.split("---", 2)[-1].strip())
-        if limit:
-            self.assertLessEqual(len(context), limit)
+        self.assertEqual(output["systemMessage"], "CRAFT:PONYTAIL\nCRAFT:CLARIFY")
+        self.assertEqual(
+            output["hookSpecificOutput"]["hookEventName"], "SessionStart"
+        )
+        self.assertEqual(
+            context,
+            "CRAFT PONYTAIL — default: full; retain any user-selected "
+            "mode or suspension.\n\n"
+            + ponytail.split("---", 2)[-1].strip()
+            + "\n\nCRAFT CLARIFY\n\n"
+            + clarify.split("---", 2)[-1].strip(),
+        )
+        self.assertEqual(len(startup), 1)
+        self.assertEqual(startup[0]["matcher"], "startup|resume|clear|compact")
+        self.assertEqual(len(startup[0]["hooks"]), 1)
+        hook = startup[0]["hooks"][0]
+        self.assertIn("/hooks/session_start.py", hook["command"])
+        self.assertEqual(hook["additionalContextLimit"], 12000)
+        self.assertLessEqual(len(context), hook["additionalContextLimit"])
+
+    def test_startup_keeps_the_other_policy_when_one_cannot_load(self) -> None:
+        """Report missing or unusable guidance without discarding usable context."""
+
+        failures = {
+            "missing": FileNotFoundError,
+            "unreadable": PermissionError,
+            "incomplete": ValueError,
+            "empty": ValueError,
+        }
+        read_text = Path.read_text
+        for failed in ("ponytail", "clarify"):
+            for failure, error_type in failures.items():
+                with (
+                    self.subTest(policy=failed, failure=failure),
+                    tempfile.TemporaryDirectory() as temporary,
+                ):
+                    root = Path(temporary)
+                    for name in ("ponytail", "clarify"):
+                        path = root / "skills" / name / "SKILL.md"
+                        path.parent.mkdir(parents=True)
+                        path.write_text(f"---\nname: {name}\n---\n{name} guidance")
+                    broken = root / "skills" / failed / "SKILL.md"
+                    if failure == "missing":
+                        broken.unlink()
+                    elif failure == "incomplete":
+                        broken.write_text("---\nname: broken")
+                    elif failure == "empty":
+                        broken.write_text("---\nname: empty\n---\n\n")
+
+                    def read_policy(path: Path) -> str:
+                        """Simulate permission denial even for privileged test runs."""
+
+                        if failure == "unreadable" and path == broken:
+                            raise PermissionError("policy cannot be read")
+                        return read_text(path)
+
+                    with (
+                        patch.object(
+                            session_start, "__file__",
+                            str(root / "hooks" / "session_start.py"),
+                        ),
+                        patch.object(Path, "read_text", read_policy),
+                        patch("builtins.print") as output_print,
+                    ):
+                        self.assertEqual(session_start.main(), 0)
+                    output = json.loads(output_print.call_args.args[0])
+                    other = "clarify" if failed == "ponytail" else "ponytail"
+                    self.assertIn(
+                        f"CRAFT:{other.upper()}", output["systemMessage"]
+                    )
+                    self.assertNotIn(
+                        f"CRAFT:{failed.upper()}", output["systemMessage"]
+                    )
+                    self.assertIn(
+                        f"Craft {failed.title()} hook failed: {error_type.__name__}:",
+                        output["systemMessage"],
+                    )
+                    context = output["hookSpecificOutput"]["additionalContext"]
+                    self.assertTrue(context.endswith(f"\n\n{other} guidance"))
+                    self.assertNotIn(f"CRAFT {failed.upper()}", context)
+
+    def test_startup_reports_all_failed_policies_without_rejecting_the_session(self) -> None:
+        """Leave the session usable when neither bundled policy can be read."""
+
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.object(
+                session_start, "__file__",
+                str(Path(temporary) / "hooks" / "session_start.py"),
+            ),
+            patch("builtins.print") as output_print,
+        ):
+            self.assertEqual(session_start.main(), 0)
+        output = json.loads(output_print.call_args.args[0])
+        self.assertNotIn("hookSpecificOutput", output)
+        for name in ("Ponytail", "Clarify"):
+            self.assertIn(
+                f"Craft {name} hook failed: FileNotFoundError:",
+                output["systemMessage"],
+            )
 
     def test_exact_craft_prompt_lists_every_skill_then_hooks(self) -> None:
         root = Path(__file__).resolve().parents[1]

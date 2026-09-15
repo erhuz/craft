@@ -12,6 +12,7 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 - explicit skill invocation = phase boundary; prompt-phrase matching, persisted host phase state & natural-language blocklists ⊥ as authorization control
 - ID permanent & row content mutable & artifact read without ledger ∴ Build-authored implementation artifacts use domain meaning; SPEC identifiers ⊥ outside `SPEC.md` & exact Craft command selectors; prevention at authorship, accidental reference corrected in final pass, never a stop
 - Build-authored code comments and docstrings use English only, regardless of implementation language
+- Clarify applies to all technical writing in the current request; it changes wording without changing claims, document structure, or Craft phase authority
 - skill output uses bounded sentinel vocabulary
 - `§V` holds only checkable behavioral rules; conditions → `§C`; interface shape → `§I`
 - source checkout only; installed plugin/cache refresh requires separate authorization
@@ -21,7 +22,9 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 skill-policy: `skills/*/agents/openai.yaml` → `policy.allow_implicit_invocation: boolean`
 ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance until next activation; activation restores previous or supplied mode; mode/suspension-only request starts no implementation
 ponytail-entry: every Build/Backprop/Spec run, direct/delegated/resumed → load sibling Ponytail skill, activate & continue caller workflow; mode rules owned by Ponytail; no added phase authority
-session-hook: `SessionStart` → complete Ponytail policy + default `full`; known conversation mode & suspension survive resume/compaction; no mode storage
+session-hook: `SessionStart` → complete Ponytail policy + default `full`, then complete Clarify policy; context limit 12000 characters; known Ponytail mode & suspension survive resume/compaction; no mode storage
+clarify-writing: technical words + vague sentences + supplied context/evidence → plain explanation with original technical phrase once per independently readable section/finding; unsectioned text = one section; whole-sentence rewrites retain key phrases only; contextual examples ≠ replacement dictionary
+clarify-use: automatic guidance for drafting/editing technical prose + `$craft:clarify` targeted rewrite; preserve names, abbreviations, notation, exact literals, quoted evidence & claim meaning; unclear meaning → identify missing context; suitable existing explanations → explanation first; clear or already clarified text → unchanged
 prompt-hook: `UserPromptSubmit` → catalog `additionalContext` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
 distill-invocation: `$craft:distill` sole form; `$craft:destill` exact alias; any argument → `INVALID_SCOPE`
@@ -57,8 +60,10 @@ V20: `$craft:audit` is the sole decision-review skill, accepts any artifact with
 V21: skill machine tokens ⊆ `SPEC_MISSING`, `FORMAT_MISSING`, `INVALID_SCOPE`, `TASK_NOT_FOUND`, `NO_OPEN_TASKS` + one clean sentinel per skill; every other status → plain English
 V22: Build authors artifacts without ledger references, then before final verification scans the task-owned diff & rewrites any SPEC identifier outside `SPEC.md` & exact Craft command selectors into domain meaning, running gates on the corrected diff; found reference ≠ blocker, blocked completion ⊥; coincidental `V<n>`/`T<n>` token without reference context ≠ violation
 V23: Ponytail mode/suspension changes minimalism & response guidance only; explicit requirements, safety, verification & phase authority unchanged; check: mode/suspension scenarios
-V24: SessionStart output includes complete Ponytail body within configured context limit & declares `full` only as default; check: startup hook regression
+V24: SessionStart output includes complete Ponytail body followed by complete Clarify body within configured context limit & declares `full` only as default; check: startup hook regression
 V25: Build, Backprop & Spec activate Ponytail before their workflows on every direct/delegated/resumed run, preserving selected mode & phase boundaries; check: phase-entry scenarios
+V26: Missing, unreadable, malformed or empty startup policy → diagnostic + retain each successfully loaded policy; all unavailable → diagnostics without injected policy; exit 0; check: startup failure regression
+V27: Clarify output satisfies `I.clarify-writing` & `I.clarify-use`, including stable second pass, unchanged protected content & no invented meaning; check: independent behavioral scenarios
 
 §T
 id|status|task|cites
@@ -84,6 +89,7 @@ T21|x|Remove all-in, full-loop, plan & critique skills, discovery/default entrie
 T22|x|Add Ponytail modes, preserve conversation selection on policy reload & verify unchanged scope/verification boundaries|V23,V24,I.ponytail-mode,I.session-hook,I.skill-policy
 T23|x|Add Ponytail suspension/reactivation, stop alternative research once uncertainty is resolved & prefer correct edge-case handling between equally small solutions|V23,V24,I.ponytail-mode,I.session-hook
 T24|x|Activate Ponytail on every Build, Backprop & Spec run through shared activation rules; preserve selected mode & caller workflow|V23,V24,V25,I.ponytail-mode,I.ponytail-entry,I.phase-authority
+T25|x|Add Clarify with contextual word/sentence examples, automatic discovery & session loading; verify complete policies, partial failures & writing behavior|V24,V26,V27,I.skill-policy,I.session-hook,I.clarify-writing,I.clarify-use
 
 §B
 id|date|cause|fix

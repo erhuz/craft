@@ -1,5 +1,5 @@
 {
-  "description": "Load Ponytail, render Craft's catalog, and reject malformed Craft command shapes.",
+  "description": "Load Ponytail and Clarify, render Craft's catalog, and reject malformed Craft command shapes.",
   "hooks": {
     "SessionStart": [
       {
@@ -10,7 +10,7 @@
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/session_start.py\"",
             "timeout": 5,
             "statusMessage": "Loading Craft...",
-            "additionalContextLimit": 4000
+            "additionalContextLimit": 12000
           }
         ]
       }

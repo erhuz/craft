@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inject Craft's bundled Ponytail policy as SessionStart context (Codex & Claude Code)."""
+"""Load Craft's bundled writing and implementation policies on session start."""
 
 from __future__ import annotations
 
@@ -8,34 +8,47 @@ from pathlib import Path
 
 
 def skill_body(text: str) -> str:
-    if not text.startswith("---"):
-        return text.strip()
-    parts = text.split("---", 2)
-    if len(parts) != 3:
-        raise ValueError("Ponytail SKILL.md has incomplete frontmatter")
-    return parts[2].strip()
+    """Strip metadata and reject missing guidance so empty policies cannot load."""
+
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) != 3:
+            raise ValueError("SKILL.md has incomplete frontmatter")
+        text = parts[2]
+    if not text.strip():
+        raise ValueError("SKILL.md has no policy body")
+    return text.strip()
 
 
 def main() -> int:
-    """Load the policy with a default, leaving mode selection to conversation context."""
+    """Retain usable policies and user mode choices even if another policy fails."""
 
-    try:
-        root = Path(__file__).resolve().parents[1]
-        body = skill_body((root / "skills/ponytail/SKILL.md").read_text())
-        output = {
-            "systemMessage": "CRAFT:PONYTAIL",
-            "hookSpecificOutput": {
-                "hookEventName": "SessionStart",
-                "additionalContext": (
-                    "CRAFT PONYTAIL — default: full; retain any user-selected "
-                    "mode or suspension.\n\n"
-                    f"{body}"
-                ),
-            },
-        }
-    except Exception as error:
-        output = {
-            "systemMessage": f"Craft Ponytail hook failed: {type(error).__name__}: {error}"
+    root = Path(__file__).resolve().parents[1]
+    policies = (
+        (
+            "ponytail",
+            "CRAFT PONYTAIL — default: full; retain any user-selected "
+            "mode or suspension.",
+        ),
+        ("clarify", "CRAFT CLARIFY"),
+    )
+    messages = []
+    contexts = []
+    for name, header in policies:
+        try:
+            body = skill_body((root / "skills" / name / "SKILL.md").read_text())
+        except Exception as error:
+            messages.append(
+                f"Craft {name.title()} hook failed: {type(error).__name__}: {error}"
+            )
+        else:
+            messages.append(f"CRAFT:{name.upper()}")
+            contexts.append(f"{header}\n\n{body}")
+    output = {"systemMessage": "\n".join(messages)}
+    if contexts:
+        output["hookSpecificOutput"] = {
+            "hookEventName": "SessionStart",
+            "additionalContext": "\n\n".join(contexts),
         }
     print(json.dumps(output))
     return 0
