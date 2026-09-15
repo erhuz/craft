@@ -3,8 +3,8 @@ name: clarify
 description: >
   Write and revise technical prose with contextual explanations in place of
   opaque jargon and vague sentences. Keep original technical phrases in
-  parentheses once per section, while preserving names, abbreviations,
-  notation, and exact literals. Apply to all technical writing, including
+  parentheses once per distinct meaning per section, while preserving names,
+  abbreviations, notation, and exact literals. Apply to all technical writing, including
   explanations, reports, plans, specifications, documentation, and comments.
   Craft loads this guidance at SessionStart; use $craft:clarify for a targeted
   rewrite as well.
