@@ -10,6 +10,16 @@ Craft is a workflow plugin for Codex and Claude Code that turns software changes
 
 Coding agents can move quickly from an idea to code while leaving intent, scope, and completion unclear. Craft gives each phase a defined job and keeps the project's intended behavior and remaining work in `SPEC.md`.
 
+## Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Skills reference](#skills-reference)
+- [How the workflow works](#how-the-workflow-works)
+- [Design principles](#design-principles)
+- [Development and contributing](#development-and-contributing)
+- [License and attribution](#license-and-attribution)
+
 ## Installation
 
 ### Prerequisites
