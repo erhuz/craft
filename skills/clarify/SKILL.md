@@ -23,6 +23,12 @@ result follows. Terms such as "reconciliation," "persisted," "work admission,"
 and "fields have no consumers" are candidates, not a replacement dictionary.
 Ordinary uses of "binding" or "fields" may already be clear.
 
+Interpret every occurrence in its own sentence and surrounding context. The
+same word can describe different actions, actors, or constraints elsewhere;
+do not reuse an earlier explanation merely because the wording matches.
+Reuse an explanation only when the meaning also matches. Check supplied
+examples against the current context before adapting them.
+
 Use supplied context and relevant available source evidence to establish the
 meaning. If several interpretations remain possible, identify the missing
 information instead of picking one. "Robust," "efficient," and "safe" can hide
@@ -36,9 +42,11 @@ known and flag what remains unclear without inventing actors or guarantees.
 - Rewrite an entire sentence when word substitutions would leave the action,
   conditions, or consequence unclear. Retain only its key technical phrases
   beside their explanations, never the whole original sentence.
-- Retain each original phrase once per independently readable section or audit
-  finding. Use the plain explanation alone afterward. Unsectioned text counts
-  as one section; use consistent wording for the same meaning.
+- Retain each original phrase once per distinct meaning in each independently
+  readable section or audit finding. Use the plain explanation alone afterward
+  for that meaning. If the meaning changes within a section, explain and
+  annotate the new meaning too. Unsectioned text counts as one section; use
+  consistent wording only where the meaning matches.
 - Convert suitable `term (explanation)` wording to explanation-first form after
   checking that the explanation fits the context. Do not reverse parentheses
   mechanically or alter protected content.
@@ -70,9 +78,14 @@ These examples use the stated context. They are not universal definitions.
 | --- | --- | --- |
 | The configuration has been saved. | persisted configuration | saved settings (persisted configuration) |
 | The manager applies saved settings to running Postgres servers. | reconciliation | applying saved settings to running Postgres servers (reconciliation) |
+| A report compares two stock lists to find mismatches. | reconciliation | comparing two stock lists to find mismatches (reconciliation) |
 | The manager decides whether another operation may start. | work admission | deciding whether another operation may start (work admission) |
 | Different parts report conflicting states for the same servers. | divergent system truth | conflicting reports about the same servers (divergent system truth) |
 | The sentence concerns a physical book. | Check the book's binding before shipping it. | Check the book's binding before shipping it. |
+
+The two uses of "reconciliation" need different explanations. Neither
+explanation can be carried over to the other context solely because the word
+is the same.
 
 ### Whole sentences
 

@@ -23,7 +23,7 @@ skill-policy: `skills/*/agents/openai.yaml` → `policy.allow_implicit_invocatio
 ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance until next activation; activation restores previous or supplied mode; mode/suspension-only request starts no implementation
 ponytail-entry: every Build/Backprop/Spec run, direct/delegated/resumed → load sibling Ponytail skill, activate & continue caller workflow; mode rules owned by Ponytail; no added phase authority
 session-hook: `SessionStart` → complete Ponytail policy + default `full`, then complete Clarify policy; context limit 12000 characters; known Ponytail mode & suspension survive resume/compaction; no mode storage
-clarify-writing: technical words + vague sentences + supplied context/evidence → plain explanation with original technical phrase once per independently readable section/finding; unsectioned text = one section; whole-sentence rewrites retain key phrases only; contextual examples ≠ replacement dictionary
+clarify-writing: technical words + vague sentences + occurrence-specific context/evidence → plain explanation with original technical phrase once per distinct meaning in each independently readable section/finding; unsectioned text = one section; whole-sentence rewrites retain key phrases only; reuse explanations only when meaning matches; contextual examples ≠ replacement dictionary
 clarify-use: automatic guidance for drafting/editing technical prose + `$craft:clarify` targeted rewrite; preserve names, abbreviations, notation, exact literals, quoted evidence & claim meaning; unclear meaning → identify missing context; suitable existing explanations → explanation first; clear or already clarified text → unchanged
 prompt-hook: `UserPromptSubmit` → catalog `additionalContext` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
@@ -90,6 +90,7 @@ T22|x|Add Ponytail modes, preserve conversation selection on policy reload & ver
 T23|x|Add Ponytail suspension/reactivation, stop alternative research once uncertainty is resolved & prefer correct edge-case handling between equally small solutions|V23,V24,I.ponytail-mode,I.session-hook
 T24|x|Activate Ponytail on every Build, Backprop & Spec run through shared activation rules; preserve selected mode & caller workflow|V23,V24,V25,I.ponytail-mode,I.ponytail-entry,I.phase-authority
 T25|x|Add Clarify with contextual word/sentence examples, automatic discovery & session loading; verify complete policies, partial failures & writing behavior|V24,V26,V27,I.skill-policy,I.session-hook,I.clarify-writing,I.clarify-use
+T26|x|Adapt each Clarify explanation to its occurrence; distinguish meanings of the same phrase within a section & add contrasting examples|V24,V27,I.clarify-writing
 
 §B
 id|date|cause|fix

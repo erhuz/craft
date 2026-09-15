@@ -1,7 +1,7 @@
 interface:
   display_name: "Clarify"
   short_description: "Explain technical prose without hiding its meaning"
-  default_prompt: "Use $craft:clarify to rewrite this technical prose with explanations first, retaining original phrases once per section and preserving names, abbreviations, and notation."
+  default_prompt: "Use $craft:clarify to adapt each explanation to its context, retaining original phrases once per meaning per section and preserving names, abbreviations, and notation."
 
 policy:
   allow_implicit_invocation: true
