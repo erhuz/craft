@@ -17,14 +17,19 @@ def skill_body(text: str) -> str:
 
 
 def main() -> int:
+    """Load the policy with a default, leaving mode selection to conversation context."""
+
     try:
         root = Path(__file__).resolve().parents[1]
         body = skill_body((root / "skills/ponytail/SKILL.md").read_text())
         output = {
-            "systemMessage": "CRAFT:PONYTAIL:FULL",
+            "systemMessage": "CRAFT:PONYTAIL",
             "hookSpecificOutput": {
                 "hookEventName": "SessionStart",
-                "additionalContext": f"CRAFT PONYTAIL ACTIVE — level: full\n\n{body}",
+                "additionalContext": (
+                    "CRAFT PONYTAIL — default: full; retain any user-selected mode.\n\n"
+                    f"{body}"
+                ),
             },
         }
     except Exception as error:

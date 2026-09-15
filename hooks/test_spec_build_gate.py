@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -14,6 +15,31 @@ import spec_build_gate
 
 
 class CraftPromptRouterTest(unittest.TestCase):
+    def test_startup_loads_complete_policy_without_forcing_a_mode(self) -> None:
+        """Keep mode choices and safety rules available when a session reloads."""
+
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [sys.executable, str(root / "hooks" / "session_start.py")],
+            cwd=root.parent,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        output = json.loads(result.stdout)
+        context = output["hookSpecificOutput"]["additionalContext"]
+        header, body = context.split("\n\n", 1)
+        policy = (root / "skills" / "ponytail" / "SKILL.md").read_text()
+        limit = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"][
+            "SessionStart"
+        ][0]["hooks"][0]["additionalContextLimit"]
+
+        self.assertEqual(output["systemMessage"], "CRAFT:PONYTAIL")
+        self.assertIn("default: full", header)
+        self.assertEqual(body, policy.split("---", 2)[-1].strip())
+        if limit:
+            self.assertLessEqual(len(context), limit)
+
     def test_exact_craft_prompt_lists_every_skill_then_hooks(self) -> None:
         root = Path(__file__).resolve().parents[1]
         event = {
