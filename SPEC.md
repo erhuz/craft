@@ -19,7 +19,8 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 
 §I
 skill-policy: `skills/*/agents/openai.yaml` → `policy.allow_implicit_invocation: boolean`
-ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance; explicit invocation reactivates previous or supplied mode; mode/suspension-only request starts no implementation
+ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance until next activation; activation restores previous or supplied mode; mode/suspension-only request starts no implementation
+ponytail-entry: every Build/Backprop/Spec run, direct/delegated/resumed → load sibling Ponytail skill, activate & continue caller workflow; mode rules owned by Ponytail; no added phase authority
 session-hook: `SessionStart` → complete Ponytail policy + default `full`; known conversation mode & suspension survive resume/compaction; no mode storage
 prompt-hook: `UserPromptSubmit` → catalog `additionalContext` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
@@ -57,6 +58,7 @@ V21: skill machine tokens ⊆ `SPEC_MISSING`, `FORMAT_MISSING`, `INVALID_SCOPE`,
 V22: Build authors artifacts without ledger references, then before final verification scans the task-owned diff & rewrites any SPEC identifier outside `SPEC.md` & exact Craft command selectors into domain meaning, running gates on the corrected diff; found reference ≠ blocker, blocked completion ⊥; coincidental `V<n>`/`T<n>` token without reference context ≠ violation
 V23: Ponytail mode/suspension changes minimalism & response guidance only; explicit requirements, safety, verification & phase authority unchanged; check: mode/suspension scenarios
 V24: SessionStart output includes complete Ponytail body within configured context limit & declares `full` only as default; check: startup hook regression
+V25: Build, Backprop & Spec activate Ponytail before their workflows on every direct/delegated/resumed run, preserving selected mode & phase boundaries; check: phase-entry scenarios
 
 §T
 id|status|task|cites
@@ -81,6 +83,7 @@ T20|.|Add `§V` admission criteria & cap enforcement to Spec|V18
 T21|x|Remove all-in, full-loop, plan & critique skills, discovery/default entries, delegation paths & obsolete loop contracts; preserve remaining prompt behavior|V1,V8,V9,I.skill-policy,I.phase-authority,I.prompt-hook
 T22|x|Add Ponytail modes, preserve conversation selection on policy reload & verify unchanged scope/verification boundaries|V23,V24,I.ponytail-mode,I.session-hook,I.skill-policy
 T23|x|Add Ponytail suspension/reactivation, stop alternative research once uncertainty is resolved & prefer correct edge-case handling between equally small solutions|V23,V24,I.ponytail-mode,I.session-hook
+T24|x|Activate Ponytail on every Build, Backprop & Spec run through shared activation rules; preserve selected mode & caller workflow|V23,V24,V25,I.ponytail-mode,I.ponytail-entry,I.phase-authority
 
 §B
 id|date|cause|fix

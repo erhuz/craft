@@ -15,6 +15,12 @@ Backprop is the defect-learning flow. It coordinates; Spec owns semantic
 `SPEC.md` changes and Build owns code, tests, verification, status, staging, and
 the commit.
 
+## Start
+
+On every run, including delegated or resumed runs, invoke `$craft:ponytail` by
+loading `../ponytail/SKILL.md` and applying its activation rules. Then continue
+this skill's workflow.
+
 ## Do not backprop task-local mistakes
 
 If an existing invariant or interface already requires the correct behavior and

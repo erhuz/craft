@@ -14,6 +14,12 @@ description: >
 Implement one approved SPEC task at a time. Own code and verification; do not
 own semantic spec content.
 
+## Start
+
+On every run, including delegated or resumed runs, invoke `$craft:ponytail` by
+loading `../ponytail/SKILL.md` and applying its activation rules. Then continue
+this skill's workflow.
+
 ## Interpret request
 
 1. Treat exact first token `$craft:build` as implementation authorization. Do
@@ -45,8 +51,7 @@ own semantic spec content.
    - `x` → report the task as already complete, treat it as a per-task strict
      no-op, and continue preflighting other requested tasks.
 5. Read local instructions and `FORMAT.md` for every selected ledger when
-   present, plus the contracts in `../ponytail/SKILL.md` and
-   `../caveman/SKILL.md`.
+   present, plus the contract in `../caveman/SKILL.md`.
 6. Inspect Git status for every selected ledger before selecting work. Preserve
    unrelated user changes.
 
@@ -136,8 +141,8 @@ After planning expected paths and before any mutation:
 For each selected task:
 
 1. Change only its status cell from `.` to `~`.
-2. Implement the root behavior at the shared ownership point using Ponytail's
-   smallest-correct ladder.
+2. Implement the root behavior at the shared ownership point using the selected
+   Ponytail mode.
 3. Add the smallest runnable check that would fail for the defect or behavior.
 4. Run the focused check, then the repository's required test, check, lint, or
    build gates in the task's scope.

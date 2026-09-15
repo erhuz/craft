@@ -15,6 +15,12 @@ Own the meaning of `SPEC.md`. Build may change task status cells only. Backprop
 may propose semantic changes but must route confirmed changes through this
 skill.
 
+## Start
+
+On every run, including delegated or resumed runs, invoke `$craft:ponytail` by
+loading `../ponytail/SKILL.md` and applying its activation rules. Then continue
+this skill's workflow.
+
 ## Resolve the ledger
 
 1. Resolve the current Git root. If none exists, use the current directory.

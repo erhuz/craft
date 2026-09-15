@@ -4,7 +4,8 @@ description: >
   Apply Craft's minimalism policy in lite, full (default), or ultra mode to
   coding, design, review, refactoring, and implementation decisions. Choose the
   smallest correct solution after understanding the real flow. Use explicitly
-  as $craft:ponytail with an optional mode; Craft also loads it at SessionStart.
+  as $craft:ponytail with an optional mode. Build, Backprop, and Spec activate
+  it on every run; Craft also loads its guidance at SessionStart.
 ---
 
 # Ponytail
@@ -19,10 +20,15 @@ Use `full` when no mode has been selected. A bare invocation keeps the current
 mode.
 
 An explicit `stop ponytail` or `normal mode` request suspends Ponytail's
-minimalism and response-format guidance. The next explicit `$craft:ponytail`
-invocation reactivates it in the previous mode, unless a new mode is supplied.
+minimalism and response-format guidance until the next activation.
 Keep the mode and suspension in conversation context until the user changes
 them; resuming or compacting must preserve both when known.
+
+An explicit `$craft:ponytail` invocation or any Build, Backprop, or Spec run
+activates Ponytail, including delegated and resumed skill runs. Reactivate the
+previous mode unless a new mode is supplied; use `full` if none is known.
+When activated by another skill, continue its workflow without a mode-only
+acknowledgement. A SessionStart policy reload alone does not reactivate it.
 
 | Mode | Behavior |
 |------|----------|
