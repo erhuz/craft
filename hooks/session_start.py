@@ -20,10 +20,9 @@ def skill_body(text: str) -> str:
     return text.strip()
 
 
-def main() -> int:
+def render_startup(root: Path) -> dict:
     """Retain usable policies and user mode choices even if another policy fails."""
 
-    root = Path(__file__).resolve().parents[1]
     policies = (
         (
             "ponytail",
@@ -50,6 +49,12 @@ def main() -> int:
             "hookEventName": "SessionStart",
             "additionalContext": "\n\n".join(contexts),
         }
+    return output
+
+
+def main() -> int:
+    root = Path(__file__).resolve().parents[1]
+    output = render_startup(root)
     print(json.dumps(output))
     return 0
 

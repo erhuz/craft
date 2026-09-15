@@ -1,0 +1,5 @@
+name: craft
+version: "0.2.3"
+description: Specify, distill, build, audit, check drift, and learn from confirmed defects.
+provides_hooks:
+  - pre_llm_call

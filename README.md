@@ -13,9 +13,10 @@
 <p align="center">
   <a href="#-codex"><img src="https://img.shields.io/badge/Codex-plugin-0B4B38?style=flat-square" alt="Codex plugin"></a>
   <a href="#-claude-code"><img src="https://img.shields.io/badge/Claude_Code-plugin-0B4B38?style=flat-square" alt="Claude Code plugin"></a>
+  <a href="#-hermes-agent"><img src="https://img.shields.io/badge/Hermes_Agent-plugin-0B4B38?style=flat-square" alt="Hermes Agent plugin"></a>
 </p>
 
-Craft is a workflow plugin for Codex and Claude Code that turns software changes into compact specifications, verified implementation, and lessons from confirmed defects.
+Craft is a workflow plugin for Codex, Claude Code, and Hermes Agent that turns software changes into compact specifications, verified implementation, and lessons from confirmed defects.
 
 Coding agents can move quickly from an idea to code while leaving intent, scope, and completion unclear. Craft makes each part explicit:
 
@@ -37,8 +38,8 @@ Coding agents can move quickly from an idea to code while leaving intent, scope,
 
 ### 📋 Prerequisites
 
-- Codex with `codex plugin` support, or a version of Claude Code with plugin support.
-- `python3` available on `PATH` for the bundled hooks. The hooks use only the Python standard library.
+- Codex with `codex plugin` support, Claude Code with plugin support, or Hermes Agent with native plugin support.
+- `python3` available on `PATH` for the Codex and Claude Code hooks. The hooks use only the Python standard library.
 - Git and the tools needed to test and build the project you work on.
 
 ### 🤖 Codex
@@ -63,6 +64,17 @@ Run these commands inside Claude Code:
 ```
 
 Start a new session in your project so Craft's startup hook also runs. See the [official plugin installation guide](https://code.claude.com/docs/en/discover-plugins) for installation scopes and troubleshooting.
+
+### ☤ Hermes Agent
+
+Run these commands in your terminal:
+
+```sh
+hermes plugins install erhuz/craft
+hermes plugins enable craft
+```
+
+Start a new Hermes session in your project. Send `$craft` or `$craft:...` as a regular chat message; Hermes loads the corresponding namespaced skill through Craft's prompt hook. Hermes also exposes the bundled skills to its `skill_view` tool under names such as `craft:spec`. See the [Hermes plugin guide](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/plugins.md) for installation and activation details.
 
 ### ✅ Verify installation
 
@@ -194,6 +206,7 @@ hooks/test_spec_build_gate.py
                            Regression checks for hooks and workflow contracts
 .codex-plugin/plugin.json  Codex plugin manifest
 .claude-plugin/            Claude Code manifest and marketplace catalog
+plugin.yaml, __init__.py    Hermes Agent native plugin adapter
 SPEC.md                   Craft's own specification and task ledger
 FORMAT.md                 Local specification format
 assets/                   README artwork
@@ -204,6 +217,7 @@ Run the existing regression suite from the repository root:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s hooks -p 'test_*.py' -v
+hermes plugins doctor . --ci
 git diff --check
 ```
 

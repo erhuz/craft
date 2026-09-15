@@ -153,7 +153,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         introduction = context.split("\n\n", 1)[1]
 
         self.assertIn("Do not call tools or invoke a skill.", context)
-        self.assertIn("workflow plugin for Codex and Claude Code", introduction)
+        self.assertIn("workflow plugin for Codex, Claude Code, and Hermes Agent", introduction)
         workflow, skills = introduction.split("## 🧰 Skills", 1)
         self.assertIn("`SPEC.md`", workflow)
         self.assertLess(workflow.index("$craft:spec"), workflow.index("$craft:build --next"))

@@ -57,7 +57,7 @@ def render_introduction(root: Path) -> str:
         "",
         "**Specify clearly. Build minimally. Verify deliberately.**",
         "",
-        "Craft is a workflow plugin for Codex and Claude Code. It keeps intended "
+        "Craft is a workflow plugin for Codex, Claude Code, and Hermes Agent. It keeps intended "
         "behavior and remaining work in `SPEC.md`, so you know what to build, "
         "how to verify it, and what is finished.",
         "",
