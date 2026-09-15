@@ -117,12 +117,12 @@ Check reports mismatches and missing evidence without changing files.
 
 | Skill / command | Use it for | Changes |
 | --- | --- | --- |
-| [Spec](skills/spec/SKILL.md)<br>`$craft:spec` | Define a change, capture current behavior, or amend intended behavior. | The meaning and content of repository-root `SPEC.md`. |
-| [Build](skills/build/SKILL.md)<br>`$craft:build --next` | Implement and verify specified work. Also accepts `--all` or explicit task scope. | Implementation, tests, task statuses, staging, and scoped commits. |
-| [Check](skills/check/SKILL.md)<br>`$craft:check` | Find disagreements between the current specification and code, or missing evidence. | Nothing; read-only. |
-| [Audit](skills/audit/SKILL.md)<br>`$craft:audit` | Review whether decisions in an artifact are justified. A ledger is optional. | Nothing; read-only. |
-| [Backprop](skills/backprop/SKILL.md)<br>`$craft:backprop` | Trace a confirmed defect and propose what the project needs to learn. | After confirmation, coordinates Spec and Build through a verified fix and commit. |
-| [Distill](skills/distill/SKILL.md)<br>`$craft:distill` | Reduce a ledger to current intent and open work when obsolete or duplicate material accumulates. | Replaces `SPEC.md` only after an evidence-backed preview and explicit confirmation. |
+| [Spec](skills/spec/SKILL.md) · `$craft:spec` | Define a change, capture current behavior, or amend intended behavior. | The meaning and content of repository-root `SPEC.md`. |
+| [Build](skills/build/SKILL.md) · `$craft:build --next` | Implement and verify specified work. Also accepts `--all` or explicit task scope. | Implementation, tests, task statuses, staging, and scoped commits. |
+| [Check](skills/check/SKILL.md) · `$craft:check` | Find disagreements between the current specification and code, or missing evidence. | Nothing; read-only. |
+| [Audit](skills/audit/SKILL.md) · `$craft:audit` | Review whether decisions in an artifact are justified. A ledger is optional. | Nothing; read-only. |
+| [Backprop](skills/backprop/SKILL.md) · `$craft:backprop` | Trace a confirmed defect and propose what the project needs to learn. | After confirmation, coordinates Spec and Build through a verified fix and commit. |
+| [Distill](skills/distill/SKILL.md) · `$craft:distill` | Reduce a ledger to current intent and open work when obsolete or duplicate material accumulates. | Replaces `SPEC.md` only after an evidence-backed preview and explicit confirmation. |
 
 `$craft:destill` is a [compatibility alias](skills/destill/SKILL.md) for `$craft:distill`. Neither spelling accepts arguments.
 
@@ -130,9 +130,9 @@ Check reports mismatches and missing evidence without changing files.
 
 | Skill / command | Use it for | Changes |
 | --- | --- | --- |
-| [Ponytail](skills/ponytail/SKILL.md)<br>`$craft:ponytail` | Choose the smallest correct solution. Select `lite`, `full`, or `ultra`; the default is `full`. | Guidance for the current work; does not authorize a new phase. |
-| [Caveman](skills/caveman/SKILL.md)<br>`$craft:caveman` | Write compact specifications while retaining facts and conditions. | Wording and encoding within the current phase's authorized scope. |
-| [Clarify](skills/clarify/SKILL.md)<br>`$craft:clarify` | Explain technical prose while preserving exact meaning and literals. | The requested prose; does not change requirements or phase authority. |
+| [Ponytail](skills/ponytail/SKILL.md) · `$craft:ponytail` | Choose the smallest correct solution. Select `lite`, `full`, or `ultra`; the default is `full`. | Guidance for the current work; does not authorize a new phase. |
+| [Caveman](skills/caveman/SKILL.md) · `$craft:caveman` | Write compact specifications while retaining facts and conditions. | Wording and encoding within the current phase's authorized scope. |
+| [Clarify](skills/clarify/SKILL.md) · `$craft:clarify` | Explain technical prose while preserving exact meaning and literals. | The requested prose; does not change requirements or phase authority. |
 
 The startup hook loads Ponytail and Clarify guidance automatically. Build, Backprop, and Spec also activate Ponytail when they run. `stop ponytail` or `normal mode` suspends its guidance until the next activation; an existing mode choice survives reloads.
 
