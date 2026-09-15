@@ -25,7 +25,8 @@ ponytail-entry: every Build/Backprop/Spec run, direct/delegated/resumed → load
 session-hook: `SessionStart` → complete Ponytail policy + default `full`, then complete Clarify policy; context limit 12000 characters; known Ponytail mode & suspension survive resume/compaction; no mode storage
 clarify-writing: technical words + vague sentences + occurrence-specific context/evidence → plain explanation with original technical phrase once per distinct meaning in each independently readable section/finding; unsectioned text = one section; whole-sentence rewrites retain key phrases only; reuse explanations only when meaning matches; contextual examples ≠ replacement dictionary
 clarify-use: automatic guidance for drafting/editing technical prose + `$craft:clarify` targeted rewrite; preserve names, abbreviations, notation, exact literals, quoted evidence & claim meaning; unclear meaning → identify missing context; suitable existing explanations → explanation first; clear or already clarified text → unchanged
-prompt-hook: `UserPromptSubmit` → catalog `additionalContext` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
+prompt-hook: `UserPromptSubmit` → plugin/workflow introduction `additionalContext` on exact trimmed `$craft` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
+craft-introduction: bare `$craft` → purpose, `SPEC.md`, explicit Spec → Build → Check steps, getting-started command & current skills discovered from plugin metadata; response only, no tools or skill invocation
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
 distill-invocation: `$craft:distill` sole form; `$craft:destill` exact alias; any argument → `INVALID_SCOPE`
 distill-rewrite: stable root `SPEC.md` + current intent + evidence + operator decisions → preview / confirmed atomic `SPEC.md` replacement / no-op; surviving IDs unchanged; staging artifact ⊥
@@ -64,6 +65,7 @@ V24: SessionStart output includes complete Ponytail body followed by complete Cl
 V25: Build, Backprop & Spec activate Ponytail before their workflows on every direct/delegated/resumed run, preserving selected mode & phase boundaries; check: phase-entry scenarios
 V26: Missing, unreadable, malformed or empty startup policy → diagnostic + retain each successfully loaded policy; all unavailable → diagnostics without injected policy; exit 0; check: startup failure regression
 V27: Clarify output satisfies `I.clarify-writing` & `I.clarify-use`, including stable second pass, unchanged protected content & no invented meaning; check: independent behavioral scenarios
+V28: prompt hook emits `I.craft-introduction` only for exact trimmed `$craft`; arguments, sub-skills, quoted, embedded, punctuated & case-changed occurrences never trigger introduction; check: bare-invocation regression
 
 §T
 id|status|task|cites
@@ -91,6 +93,7 @@ T23|x|Add Ponytail suspension/reactivation, stop alternative research once uncer
 T24|x|Activate Ponytail on every Build, Backprop & Spec run through shared activation rules; preserve selected mode & caller workflow|V23,V24,V25,I.ponytail-mode,I.ponytail-entry,I.phase-authority
 T25|x|Add Clarify with contextual word/sentence examples, automatic discovery & session loading; verify complete policies, partial failures & writing behavior|V24,V26,V27,I.skill-policy,I.session-hook,I.clarify-writing,I.clarify-use
 T26|x|Adapt each Clarify explanation to its occurrence; distinguish meanings of the same phrase within a section & add contrasting examples|V24,V27,I.clarify-writing
+T27|x|Replace bare Craft inventory with plugin/workflow introduction, preserve exact invocation routing & align README|V28,I.prompt-hook,I.craft-introduction
 
 §B
 id|date|cause|fix

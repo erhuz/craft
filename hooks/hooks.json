@@ -1,5 +1,5 @@
 {
-  "description": "Load Ponytail and Clarify, render Craft's catalog, and reject malformed Craft command shapes.",
+  "description": "Load Ponytail and Clarify, introduce Craft and its workflow, and reject malformed Craft command shapes.",
   "hooks": {
     "SessionStart": [
       {

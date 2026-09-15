@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render Craft's catalog and reject malformed Craft command shapes."""
+"""Introduce Craft and reject malformed Craft command shapes."""
 
 from __future__ import annotations
 
@@ -49,26 +49,47 @@ def _skill_summary(skill: Path) -> str:
     return " ".join(paragraph) or "No summary provided"
 
 
-def render_catalog(root: Path) -> str:
-    lines = ["# Craft", "", "## Skills", ""]
+def render_introduction(root: Path) -> str:
+    """Explain the workflow and discover skills from the installed plugin."""
+
+    lines = [
+        "# 🦫 Craft",
+        "",
+        "**Specify clearly. Build minimally. Verify deliberately.**",
+        "",
+        "Craft is a workflow plugin for Codex and Claude Code. It keeps intended "
+        "behavior and remaining work in `SPEC.md`, so you know what to build, "
+        "how to verify it, and what is finished.",
+        "",
+        "## 🚀 Workflow",
+        "",
+        "1. **Specify** — `$craft:spec` defines behavior and tasks in `SPEC.md`. "
+        "Review the specification before building.",
+        "2. **Build** — `$craft:build --next` implements one task, runs the "
+        "required checks, and creates a scoped local commit when they pass. "
+        "Repeat for the remaining tasks.",
+        "3. **Check** — `$craft:check` compares the specification with the code "
+        "and reports mismatches or missing evidence without changing files.",
+        "",
+        "Invoke each phase explicitly. Creating a specification does not start "
+        "Build, and a local commit does not push or deploy your changes.",
+        "",
+        "To get started, send `$craft:spec` with a description of your change. "
+        "For an existing `SPEC.md`, use `$craft:spec amend <section>` with "
+        "the requested change.",
+        "",
+        "## 🧰 Skills",
+        "",
+    ]
     for skill in sorted((root / "skills").glob("*/SKILL.md")):
         name = skill.parent.name
         lines.append(f"- `$craft:{name}` — {_skill_summary(skill)}")
 
-    lines.extend(["", "## Hooks", ""])
-    config = json.loads((root / "hooks" / "hooks.json").read_text())
-    for event, groups in config.get("hooks", {}).items():
-        for group in groups:
-            for hook in group.get("hooks", []):
-                command = hook.get("command", "")
-                scripts = re.findall(r"([^/\" ]+\.py)", command)
-                handler = scripts[-1] if scripts else command
-                lines.append(f"- `{event}` → `{handler}`")
     return "\n".join(lines)
 
 
 def handle(event: dict[str, Any]) -> dict[str, Any] | None:
-    """Render the catalog and reject a malformed Craft command shape.
+    """Introduce the workflow and reject a malformed Craft command shape.
 
     Routing is this hook's whole job. Authorization comes from the explicit
     skill invocation itself, so no prompt phrase and no stored session state
@@ -84,14 +105,14 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
     if prompt.strip() == CRAFT_DEFAULT_PROMPT:
-        catalog = render_catalog(Path(__file__).resolve().parents[1])
+        introduction = render_introduction(Path(__file__).resolve().parents[1])
         return {
             "hookSpecificOutput": {
                 "hookEventName": "UserPromptSubmit",
                 "additionalContext": (
-                    "CRAFT DEFAULT ACTION. Reply with the Markdown catalog below "
+                    "CRAFT DEFAULT ACTION. Reply with the Markdown introduction below "
                     "verbatim and nothing else. Do not call tools or invoke a skill.\n\n"
-                    f"{catalog}"
+                    f"{introduction}"
                 ),
             }
         }

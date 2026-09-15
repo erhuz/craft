@@ -137,21 +137,35 @@ class CraftPromptRouterTest(unittest.TestCase):
                 output["systemMessage"],
             )
 
-    def test_exact_craft_prompt_lists_every_skill_then_hooks(self) -> None:
+    def test_exact_craft_prompt_introduces_workflow_then_available_skills(self) -> None:
+        """Make the entry point explain how to start without starting a phase."""
+
         root = Path(__file__).resolve().parents[1]
         event = {
             "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-catalog",
-            "turn_id": "turn-catalog",
+            "session_id": "session-introduction",
+            "turn_id": "turn-introduction",
             "cwd": str(root),
         }
 
         output = spec_build_gate.handle({**event, "prompt": "  $craft\n"})
         context = output["hookSpecificOutput"]["additionalContext"]
-        catalog = context.split("\n\n", 1)[1]
+        introduction = context.split("\n\n", 1)[1]
+
+        self.assertIn("Do not call tools or invoke a skill.", context)
+        self.assertIn("workflow plugin for Codex and Claude Code", introduction)
+        workflow, skills = introduction.split("## 🧰 Skills", 1)
+        self.assertIn("`SPEC.md`", workflow)
+        self.assertLess(workflow.index("$craft:spec"), workflow.index("$craft:build --next"))
+        self.assertLess(workflow.index("$craft:build --next"), workflow.index("$craft:check"))
+        self.assertIn("required checks", workflow)
+        self.assertIn("local commit when they pass", workflow)
+        self.assertIn("without changing files", workflow)
+        self.assertIn("Invoke each phase explicitly", workflow)
+        self.assertIn("$craft:spec amend <section>", workflow)
 
         for skill in sorted((root / "skills").glob("*/SKILL.md")):
-            self.assertIn(f"`$craft:{skill.parent.name}` — ", catalog)
+            self.assertIn(f"`$craft:{skill.parent.name}` — ", skills)
 
         plugin_defaults = json.loads(
             (root / ".codex-plugin" / "plugin.json").read_text()
@@ -159,29 +173,30 @@ class CraftPromptRouterTest(unittest.TestCase):
         for removed in ("all-in", "full-loop", "plan", "critique"):
             with self.subTest(removed=removed):
                 self.assertFalse((root / "skills" / removed).exists())
-                self.assertNotIn(f"$craft:{removed}", catalog)
+                self.assertNotIn(f"$craft:{removed}", introduction)
                 self.assertNotIn(f"$craft:{removed}", "\n".join(plugin_defaults))
 
-        hooks = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"]
-        for event_name, groups in hooks.items():
-            for group in groups:
-                for hook in group["hooks"]:
-                    handler = Path(hook["command"].rsplit("/", 1)[-1].strip('"')).name
-                    self.assertIn(f"`{event_name}` → `{handler}`", catalog)
+    def test_craft_introduction_requires_the_bare_invocation(self) -> None:
+        """Keep arguments, sub-skills, and mentions on their existing routes."""
 
-        self.assertLess(catalog.index("## Skills"), catalog.index("## Hooks"))
-
-    def test_craft_catalog_requires_the_bare_invocation(self) -> None:
         event = {
             "hook_event_name": "UserPromptSubmit",
-            "session_id": "session-catalog",
-            "turn_id": "turn-catalog",
+            "session_id": "session-introduction",
+            "turn_id": "turn-introduction",
             "cwd": "/tmp",
         }
         prompts = (
+            "",
+            "craft",
             "$CRAFT",
             "$craft --help",
+            "$craft spec",
             "$craft:spec",
+            "$craft:build --next",
+            "$craft:check",
+            "$craft:ponytail lite",
+            '"$craft"',
+            "`$craft`",
             "show $craft",
             "$craft\nanything",
             "$craft.",
@@ -189,7 +204,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         for prompt in prompts:
             with self.subTest(prompt=prompt):
                 output = spec_build_gate.handle({**event, "prompt": prompt})
-                self.assertNotIn("CRAFT DEFAULT ACTION", str(output))
+                self.assertIsNone(output)
 
     def test_semantic_phase_prompts_pass_through_ungated(self) -> None:
         """Leave Spec and Distill prompts untouched.

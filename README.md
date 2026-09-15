@@ -50,7 +50,7 @@ codex plugin marketplace add erhuz/craft
 codex plugin add craft@erhuz
 ```
 
-Start a new Codex session in the project where you want to use Craft. Review and trust Craft's hooks when the host requests it; the startup guidance and command catalog depend on those hooks. See the [official plugin guide](https://learn.chatgpt.com/docs/plugins) for host setup, and `codex plugin --help` for the CLI available in your installation.
+Start a new Codex session in the project where you want to use Craft. Review and trust Craft's hooks when the host requests it; the startup guidance and plugin introduction depend on those hooks. See the [official plugin guide](https://learn.chatgpt.com/docs/plugins) for host setup, and `codex plugin --help` for the CLI available in your installation.
 
 ### 💬 Claude Code
 
@@ -72,7 +72,7 @@ Send this as a message to your coding agent:
 $craft
 ```
 
-Craft should list its available skills and hooks.
+With no arguments or sub-skill, `$craft` introduces the plugin, explains the Spec → Build → Check workflow, and lists the available skills. It does not start a workflow phase.
 
 > [!TIP]
 > Send `$craft` and `$craft:...` examples as messages to your coding agent. Run the installation commands in the terminal or Claude Code as indicated above.
@@ -157,7 +157,7 @@ A project's root `FORMAT.md` takes precedence over the default [Caveman format](
 
 Spec owns the meaning of the ledger. Build owns implementation and may directly change only task status cells in `SPEC.md`. Check and Audit report evidence without editing. Distill requires confirmation of its complete replacement preview.
 
-Invoke the phase you want explicitly. Review and specification work do not silently become implementation. These are instructions followed by the agent; the prompt hook renders the catalog and validates Distill command shape, rather than enforcing a permissions system.
+Invoke the phase you want explicitly. Review and specification work do not silently become implementation. The agent follows these phase instructions. The prompt hook provides the introduction for bare `$craft` and validates Distill command shape.
 
 ### ✅ Verified tasks and commits
 
@@ -188,7 +188,7 @@ Craft consists of skill instructions, plugin metadata, and small Python hooks:
 ```text
 skills/                    Skill instructions and Codex discovery metadata
 hooks/session_start.py     Loads Ponytail and Clarify at session startup
-hooks/spec_build_gate.py   Renders the catalog and validates Distill syntax
+hooks/spec_build_gate.py   Introduces Craft and validates Distill syntax
 hooks/hooks.json           Registers hook events and commands
 hooks/test_spec_build_gate.py
                            Regression checks for hooks and workflow contracts
