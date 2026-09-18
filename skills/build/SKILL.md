@@ -198,8 +198,12 @@ Mark and commit a task complete only when:
 
 - Only task status cells may be changed directly in `SPEC.md`; all semantic
   changes go through `$craft:spec`.
-- Keep execution in one native thread, without sub-agents, parallel workers,
-  progress dashboards, or speculative work.
+- One orchestrator may manage multiple sub-agents, including one per repository
+  within the authorized scope. Execute work sequentially: only one agent may
+  work at a time. Wait for each delegated task to finish before another agent
+  starts work; the orchestrator may coordinate and wait during delegation but
+  must not execute other work concurrently. Parallel execution, parallel
+  workers, progress dashboards, and speculative work are forbidden.
 - The explicit Build request defines ledger and task scope. Never widen beyond
   its resolved targets into other repositories, services, deployments, or
   provider state.
