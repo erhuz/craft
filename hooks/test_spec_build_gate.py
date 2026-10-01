@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,9 +32,9 @@ class CraftPromptRouterTest(unittest.TestCase):
         )
         output = json.loads(result.stdout)
         context = output["hookSpecificOutput"]["additionalContext"]
-        ponytail = (root / "skills" / "ponytail" / "SKILL.md").read_text()
-        clarify = (root / "skills" / "clarify" / "SKILL.md").read_text()
-        startup = json.loads((root / "hooks" / "hooks.json").read_text())["hooks"][
+        ponytail = (root / "skills" / "ponytail" / "SKILL.md").read_text(encoding="utf-8")
+        clarify = (root / "skills" / "clarify" / "SKILL.md").read_text(encoding="utf-8")
+        startup = json.loads((root / "hooks" / "codex.json").read_text(encoding="utf-8"))["hooks"][
             "SessionStart"
         ]
 
@@ -85,12 +87,12 @@ class CraftPromptRouterTest(unittest.TestCase):
                     elif failure == "empty":
                         broken.write_text("---\nname: empty\n---\n\n")
 
-                    def read_policy(path: Path) -> str:
+                    def read_policy(path: Path, **kwargs) -> str:
                         """Simulate permission denial even for privileged test runs."""
 
                         if failure == "unreadable" and path == broken:
                             raise PermissionError("policy cannot be read")
-                        return read_text(path)
+                        return read_text(path, **kwargs)
 
                     with (
                         patch.object(
@@ -170,7 +172,7 @@ class CraftPromptRouterTest(unittest.TestCase):
             self.assertIn(f"`$craft:{name}` / `/craft:{name}` — ", skills)
 
         plugin_defaults = json.loads(
-            (root / ".codex-plugin" / "plugin.json").read_text()
+            (root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
         )["interface"]["defaultPrompt"]
         for removed in ("all-in", "full-loop", "plan", "critique"):
             with self.subTest(removed=removed):
@@ -452,10 +454,12 @@ class CraftPromptRouterTest(unittest.TestCase):
                     )
 
     def test_implementation_defaults_are_canonical_invocations(self) -> None:
+        """Keep the composer default executable through the unrestricted Build route."""
+
         root = Path(__file__).resolve().parents[1]
         metadata = (
             root / "skills" / "build" / "agents" / "openai.yaml"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         raw = next(
             line.split(":", 1)[1].strip()
             for line in metadata.splitlines()
@@ -463,7 +467,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         )
 
         plugin_defaults = json.loads(
-            (root / ".codex-plugin" / "plugin.json").read_text()
+            (root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
         )["interface"]["defaultPrompt"]
         implementation_defaults = [
             prompt
@@ -492,7 +496,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         for name in ("spec", "distill"):
             metadata = (
                 root / "skills" / name / "agents" / "openai.yaml"
-            ).read_text()
+            ).read_text(encoding="utf-8")
             raw = next(
                 line.split(":", 1)[1].strip()
                 for line in metadata.splitlines()
@@ -504,7 +508,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         self.assertEqual(agent_defaults, expected)
 
         plugin_defaults = json.loads(
-            (root / ".codex-plugin" / "plugin.json").read_text()
+            (root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
         )["interface"]["defaultPrompt"]
         pre_build_defaults = [
             prompt
@@ -528,11 +532,11 @@ class CraftPromptRouterTest(unittest.TestCase):
         """Keep the misspelled selector as metadata-documented delegation."""
 
         root = Path(__file__).resolve().parents[1]
-        canonical = (root / "skills" / "distill" / "SKILL.md").read_text()
-        alias = (root / "skills" / "destill" / "SKILL.md").read_text()
+        canonical = (root / "skills" / "distill" / "SKILL.md").read_text(encoding="utf-8")
+        alias = (root / "skills" / "destill" / "SKILL.md").read_text(encoding="utf-8")
         metadata = (
             root / "skills" / "destill" / "agents" / "openai.yaml"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         canonical_normalized = " ".join(canonical.split())
         alias_normalized = " ".join(alias.split())
 
@@ -553,8 +557,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
 
         root = Path(__file__).resolve().parents[1]
         help_path = root / "skills" / "help"
-        help_text = " ".join((help_path / "SKILL.md").read_text().split())
-        prose = (help_path / "introduction.md").read_text().rstrip()
+        help_text = " ".join((help_path / "SKILL.md").read_text(encoding="utf-8").split())
+        prose = (help_path / "introduction.md").read_text(encoding="utf-8").rstrip()
         rendered = spec_build_gate.render_introduction(root)
         self.assertTrue(rendered.startswith(prose + "\n\n"))
         for contract in (
@@ -575,7 +579,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             installed = Path(temporary)
             (installed / "skills" / "help").mkdir(parents=True)
-            (installed / "skills" / "help" / "introduction.md").write_text(prose)
+            (installed / "skills" / "help" / "introduction.md").write_text(prose, encoding="utf-8")
             newcomer = installed / "skills" / "newcomer" / "SKILL.md"
             newcomer.parent.mkdir()
             newcomer.write_text("---\nname: newcomer\n---\n# Newcomer\n\nDescribe current behavior.\n")
@@ -588,7 +592,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """Preserve conversation choices when hooks are absent or load only one policy."""
 
         root = Path(__file__).resolve().parents[1]
-        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text().split())
+        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text(encoding="utf-8").split())
         for contract in (
             "Do not depend on hooks",
             "read all of `../ponytail/SKILL.md` or `../clarify/SKILL.md`",
@@ -605,7 +609,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
                 self.assertIn(contract, entry)
         for name in ("spec", "build", "backprop"):
             with self.subTest(phase=name):
-                skill = " ".join((root / "skills" / name / "SKILL.md").read_text().split())
+                skill = " ".join((root / "skills" / name / "SKILL.md").read_text(encoding="utf-8").split())
                 self.assertIn("On every run, including delegated or resumed runs", skill)
                 self.assertIn("loading `../ponytail/SKILL.md` and applying its activation rules", skill)
 
@@ -613,7 +617,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """Keep inaccessible repositories distinct from absent ledgers or verified source."""
 
         root = Path(__file__).resolve().parents[1]
-        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text().split())
+        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text(encoding="utf-8").split())
         for contract in (
             "Before any repository operation",
             "Plugin resources and supplied attachments do not prove repository access",
@@ -634,7 +638,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """Remove command-shape and worktree-ownership rejection."""
 
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        skill = (root / "skills" / "build" / "SKILL.md").read_text(encoding="utf-8")
         interpret = " ".join(
             skill.partition("## Interpret request")[2]
             .partition("\n## ")[0]
@@ -689,7 +693,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """Exclude historical defects from current-truth drift classification."""
 
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills" / "check" / "SKILL.md").read_text()
+        skill = (root / "skills" / "check" / "SKILL.md").read_text(encoding="utf-8")
         load = " ".join(skill.partition("## Load")[2].partition("\n## ")[0].split())
         report = " ".join(
             skill.partition("## Report")[2].partition("\n## ")[0].split()
@@ -727,10 +731,10 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """
 
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills" / "distill" / "SKILL.md").read_text()
-        caveman = (root / "skills" / "caveman" / "SKILL.md").read_text()
-        spec = (root / "skills" / "spec" / "SKILL.md").read_text()
-        build = (root / "skills" / "build" / "SKILL.md").read_text()
+        skill = (root / "skills" / "distill" / "SKILL.md").read_text(encoding="utf-8")
+        caveman = (root / "skills" / "caveman" / "SKILL.md").read_text(encoding="utf-8")
+        spec = (root / "skills" / "spec" / "SKILL.md").read_text(encoding="utf-8")
+        build = (root / "skills" / "build" / "SKILL.md").read_text(encoding="utf-8")
         normalized = " ".join(skill.split())
         caveman_normalized = " ".join(caveman.split())
         spec_normalized = " ".join(spec.split())
@@ -792,8 +796,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
         """
 
         root = Path(__file__).resolve().parents[1]
-        build = (root / "skills" / "build" / "SKILL.md").read_text()
-        backprop = (root / "skills" / "backprop" / "SKILL.md").read_text()
+        build = (root / "skills" / "build" / "SKILL.md").read_text(encoding="utf-8")
+        backprop = (root / "skills" / "backprop" / "SKILL.md").read_text(encoding="utf-8")
         artifact = " ".join(
             build.partition("## Implementation artifact contract")[2]
             .partition("\n## ")[0]
@@ -835,8 +839,10 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertNotIn("commit: `backprop B<n>", backprop)
 
     def test_build_continues_through_dirty_same_path_content(self) -> None:
+        """Preserve baseline edits instead of using same-path changes as a blocker."""
+
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        skill = (root / "skills" / "build" / "SKILL.md").read_text(encoding="utf-8")
         baseline = skill.partition("## Git baseline")[2].partition("\n## ")[0]
         normalized = " ".join(baseline.split())
         self.assertIn(
@@ -850,6 +856,8 @@ class CraftSkillPolicyTest(unittest.TestCase):
         )
 
     def test_build_preserves_next_task_precedence(self) -> None:
+        """Resume unfinished work before selecting a new task so continuation is deterministic."""
+
         root = Path(__file__).resolve().parents[1]
         cases = (
             (
@@ -861,7 +869,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
             ("closed", "If no `.` or `~` task exists, strict no-op."),
         )
 
-        skill = (root / "skills" / "build" / "SKILL.md").read_text()
+        skill = (root / "skills" / "build" / "SKILL.md").read_text(encoding="utf-8")
         selection = skill.partition("## Select")[2].partition("\n## ")[0]
         normalized = " ".join(selection.split())
         positions = []
@@ -872,8 +880,10 @@ class CraftSkillPolicyTest(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
 
     def test_spec_raw_defects_preserve_explicit_phase_authority(self) -> None:
+        """Keep defect reports from silently entering another Craft phase."""
+
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills" / "spec" / "SKILL.md").read_text()
+        skill = (root / "skills" / "spec" / "SKILL.md").read_text(encoding="utf-8")
         dispatch = skill.partition("## Dispatch")[2].partition("## Create")[0]
         normalized = " ".join(dispatch.split())
 
@@ -904,7 +914,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
 
         for skill in sorted((root / "skills").glob("*/SKILL.md")):
             with self.subTest(skill=skill.parent.name):
-                found = set(sentinel_shape.findall(skill.read_text()))
+                found = set(sentinel_shape.findall(skill.read_text(encoding="utf-8")))
                 self.assertEqual(found - allowed, set())
 
     def test_explicit_only_skills_disable_implicit_invocation(self) -> None:
@@ -916,7 +926,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
                 metadata = skill.parent / "agents" / "openai.yaml"
                 self.assertTrue(metadata.is_file())
                 automatic = skill.parent.name == "clarify"
-                frontmatter = skill.read_text().split("---", 2)[1]
+                frontmatter = skill.read_text(encoding="utf-8").split("---", 2)[1]
                 disabled = re.search(
                     r"^disable-model-invocation:\s*(true|false)\s*$",
                     frontmatter,
@@ -925,14 +935,14 @@ class CraftSkillPolicyTest(unittest.TestCase):
                 self.assertEqual(bool(disabled and disabled[1] == "true"), not automatic)
                 self.assertIn(
                     f"policy:\n  allow_implicit_invocation: {str(automatic).lower()}",
-                    metadata.read_text(),
+                    metadata.read_text(encoding="utf-8"),
                 )
 
     def test_skills_share_explicit_entry_and_supported_argument_hints(self) -> None:
         """Keep menu selection usable without treating quoted tool text as authority."""
 
         root = Path(__file__).resolve().parents[1]
-        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text().split())
+        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text(encoding="utf-8").split())
         for contract in (
             "Accept `/craft:<skill>` with the same arguments",
             "user's explicit selection of that installed skill",
@@ -954,10 +964,152 @@ class CraftSkillPolicyTest(unittest.TestCase):
         }
         for skill in sorted((root / "skills").glob("*/SKILL.md")):
             with self.subTest(skill=skill.parent.name):
-                text = skill.read_text()
+                text = skill.read_text(encoding="utf-8")
                 self.assertIn("read and apply `../_shared/entry.md`", text)
                 if skill.parent.name in hints:
                     self.assertIn(f'argument-hint: "[{hints[skill.parent.name]}]"', text)
+
+
+class CraftHookPortabilityTest(unittest.TestCase):
+    def test_host_registrations_select_each_shared_handler_once(self) -> None:
+        """Prevent duplicate discovery while keeping each host's supported launch form."""
+
+        root = Path(__file__).resolve().parents[1]
+        codex_manifest = json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        claude_manifest = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(codex_manifest["hooks"], "./hooks/codex.json")
+        self.assertNotIn("hooks", claude_manifest)
+        for host, path, expected_events in (
+            ("claude", "hooks.json", {"SessionStart", "UserPromptSubmit", "UserPromptExpansion"}),
+            ("codex", "codex.json", {"SessionStart", "UserPromptSubmit"}),
+        ):
+            config = json.loads((root / "hooks" / path).read_text(encoding="utf-8"))["hooks"]
+            self.assertEqual(set(config), expected_events)
+            for event, entries in config.items():
+                with self.subTest(host=host, event=event):
+                    self.assertEqual(len(entries), 1)
+                    self.assertEqual(len(entries[0]["hooks"]), 1)
+                    hook = entries[0]["hooks"][0]
+                    script = "session_start.py" if event == "SessionStart" else "spec_build_gate.py"
+                    self.assertEqual(hook["timeout"], 5)
+                    if host == "claude":
+                        self.assertEqual(hook["command"], "python3")
+                        self.assertEqual(hook["args"], ["${CLAUDE_PLUGIN_ROOT}/hooks/" + script])
+                        self.assertNotIn("commandWindows", hook)
+                    else:
+                        self.assertEqual(hook["command"], 'python3 "${PLUGIN_ROOT}/hooks/' + script + '"')
+                        windows = hook["commandWindows"]
+                        self.assertTrue(windows.startswith("powershell.exe -NoProfile -NonInteractive -Command "))
+                        self.assertIn("& py -3 (Join-Path", windows)
+                        self.assertIn("GetEnvironmentVariable('PLUGIN_ROOT')", windows)
+                        self.assertIn("'hooks/" + script + "'", windows)
+                        self.assertNotIn("${", windows)
+
+    def _run_configured_hooks(self, host: str) -> None:
+        """Execute the shipped launcher in a relocated bundle to expose path and encoding bugs."""
+
+        source = Path(__file__).resolve().parents[1]
+        config_name = "hooks.json" if host == "claude" else "codex.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "Craft space å ' $ `"
+            for directory in ("hooks", "skills"):
+                shutil.copytree(source / directory, root / directory)
+            config = json.loads((root / "hooks" / config_name).read_text(encoding="utf-8"))["hooks"]
+            environment = {
+                **os.environ, "CLAUDE_PLUGIN_ROOT": str(root), "PLUGIN_ROOT": str(root),
+                "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUTF8": "0",
+                "PYTHONCOERCECLOCALE": "0", "LC_ALL": "C",
+            }
+            events = [
+                ({"hook_event_name": "SessionStart", "source": "startup"}, "startup"),
+                ({"hook_event_name": "UserPromptSubmit", "prompt": "$craft"}, "intro"),
+                ({"hook_event_name": "UserPromptSubmit", "prompt": "/craft:distill --candidate"}, "block"),
+                ({"hook_event_name": "UserPromptSubmit", "prompt": "/craft:build --unknown project scope"}, None),
+            ]
+            if host == "claude":
+                events.extend([
+                    ({"hook_event_name": "UserPromptExpansion", "expansion_type": "slash_command",
+                      "command_source": "plugin", "command_name": "craft:destill", "command_args": "extra"}, "block"),
+                    ({"hook_event_name": "UserPromptExpansion", "expansion_type": "slash_command",
+                      "command_source": "plugin", "command_name": "craft:distill", "command_args": ""}, None),
+                ])
+            for event, expected in events:
+                with self.subTest(host=host, event=event):
+                    hook = config[event["hook_event_name"]][0]["hooks"][0]
+                    if host == "claude":
+                        command = [hook["command"], *[
+                            argument.replace("${CLAUDE_PLUGIN_ROOT}", str(root))
+                            for argument in hook["args"]
+                        ]]
+                        shell = False
+                    else:
+                        command = hook["commandWindows"] if os.name == "nt" else hook["command"]
+                        shell = True
+                    result = subprocess.run(
+                        command, shell=shell, env=environment, cwd=temporary,
+                        input=json.dumps(event), capture_output=True, text=True,
+                        encoding="utf-8", timeout=hook["timeout"] + 2, check=True,
+                    )
+                    self.assertEqual(result.stderr, "")
+                    if expected is None:
+                        self.assertEqual(result.stdout, "")
+                        continue
+                    output = json.loads(result.stdout)
+                    if expected == "block":
+                        self.assertEqual(output["decision"], "block")
+                    else:
+                        context = output["hookSpecificOutput"]["additionalContext"]
+                        if expected == "startup":
+                            self.assertEqual(output["systemMessage"], "CRAFT:PONYTAIL\nCRAFT:CLARIFY")
+                            self.assertEqual(context.count("CRAFT PONYTAIL —"), 1)
+                            self.assertEqual(context.count("CRAFT CLARIFY"), 1)
+                        else:
+                            self.assertIn("🦫 Craft", context)
+                            self.assertIn("`$craft:help` / `/craft:help`", context)
+
+    def test_claude_direct_launcher_handles_space_and_unicode_paths(self) -> None:
+        """Exercise direct executable arguments rather than shell expansion of plugin paths."""
+
+        self._run_configured_hooks("claude")
+
+    @unittest.skipIf(os.name == "nt", "Unix launcher requires a native Unix shell")
+    def test_codex_unix_launcher_handles_space_and_unicode_paths(self) -> None:
+        """Exercise the Unix command with the documented plugin-root environment."""
+
+        self._run_configured_hooks("codex")
+
+    @unittest.skipUnless(os.name == "nt", "Windows launcher requires native PowerShell and py -3")
+    def test_codex_windows_launcher_handles_space_and_unicode_paths(self) -> None:
+        """Run the Windows override on its native platform instead of emulating PowerShell."""
+
+        self._run_configured_hooks("codex")
+
+    def test_prompt_router_errors_preserve_the_prompt_and_exit_successfully(self) -> None:
+        """Keep internal parsing and bundled-resource failures diagnostic and nonblocking."""
+
+        root = Path(__file__).resolve().parents[1]
+        for payload in ("not json", "[]", "null", '{"hook_event_name":"UserPromptSubmit","prompt":123}'):
+            with self.subTest(payload=payload):
+                result = subprocess.run(
+                    [sys.executable, str(root / "hooks" / "spec_build_gate.py")],
+                    input=payload, capture_output=True, text=True, check=True,
+                )
+                if result.stdout:
+                    output = json.loads(result.stdout)
+                    self.assertIn("Craft prompt router failed:", output["systemMessage"])
+                    self.assertNotIn("decision", output)
+                self.assertEqual(result.stderr, "")
+        with (
+            patch("sys.stdin", io.StringIO(json.dumps({
+                "hook_event_name": "UserPromptSubmit", "prompt": "$craft",
+            }))),
+            patch.object(spec_build_gate, "render_introduction", side_effect=FileNotFoundError("missing introduction")),
+            patch("builtins.print") as output_print,
+        ):
+            self.assertEqual(spec_build_gate.main(), 0)
+        output = json.loads(output_print.call_args.args[0])
+        self.assertIn("FileNotFoundError: missing introduction", output["systemMessage"])
+        self.assertNotIn("decision", output)
 
 
 if __name__ == "__main__":

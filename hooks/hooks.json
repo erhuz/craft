@@ -7,10 +7,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/session_start.py\"",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py"],
             "timeout": 5,
-            "statusMessage": "Loading Craft...",
-            "additionalContextLimit": 12000
+            "statusMessage": "Loading Craft..."
           }
         ]
       }
@@ -21,7 +21,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/spec_build_gate.py\"",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/spec_build_gate.py"],
             "timeout": 5,
             "statusMessage": "Validating Craft command..."
           }
@@ -33,10 +34,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/spec_build_gate.py\"",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/spec_build_gate.py"],
             "timeout": 5,
-            "statusMessage": "Routing Craft prompt...",
-            "additionalContextLimit": 0
+            "statusMessage": "Routing Craft prompt..."
           }
         ]
       }

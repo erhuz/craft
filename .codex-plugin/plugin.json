@@ -13,6 +13,7 @@
     "backpropagation"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks/codex.json",
   "interface": {
     "displayName": "Craft",
     "shortDescription": "Specify, distill, build, audit, check drift, and learn",

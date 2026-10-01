@@ -1,0 +1,34 @@
+{
+  "description": "Load Ponytail and Clarify, introduce Craft and its workflow, and reject malformed Craft command shapes.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/session_start.py\"",
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -Command \"& py -3 (Join-Path ([Environment]::GetEnvironmentVariable('PLUGIN_ROOT')) 'hooks/session_start.py')\"",
+            "timeout": 5,
+            "statusMessage": "Loading Craft...",
+            "additionalContextLimit": 12000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/spec_build_gate.py\"",
+            "commandWindows": "powershell.exe -NoProfile -NonInteractive -Command \"& py -3 (Join-Path ([Environment]::GetEnvironmentVariable('PLUGIN_ROOT')) 'hooks/spec_build_gate.py')\"",
+            "timeout": 5,
+            "statusMessage": "Routing Craft prompt...",
+            "additionalContextLimit": 0
+          }
+        ]
+      }
+    ]
+  }
+}

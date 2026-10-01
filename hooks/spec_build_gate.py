@@ -28,7 +28,7 @@ def _skill_summary(skill: Path) -> str:
     if metadata.is_file():
         match = re.search(
             r'^\s*short_description:\s*(.+?)\s*$',
-            metadata.read_text(),
+            metadata.read_text(encoding="utf-8"),
             re.MULTILINE,
         )
         if match:
@@ -40,7 +40,7 @@ def _skill_summary(skill: Path) -> str:
             if isinstance(value, str) and value:
                 return value
 
-    body = skill.read_text().split("---", 2)[-1]
+    body = skill.read_text(encoding="utf-8").split("---", 2)[-1]
     paragraph: list[str] = []
     for line in body.splitlines():
         stripped = line.strip()
@@ -55,7 +55,10 @@ def _skill_summary(skill: Path) -> str:
 def render_introduction(root: Path) -> str:
     """Explain the workflow and discover skills from the installed plugin."""
 
-    lines = [(root / "skills" / "help" / "introduction.md").read_text().rstrip(), ""]
+    lines = [
+        (root / "skills" / "help" / "introduction.md").read_text(encoding="utf-8").rstrip(),
+        "",
+    ]
     for skill in sorted((root / "skills").glob("*/SKILL.md")):
         name = skill.parent.name
         lines.append(f"- `$craft:{name}` / `/craft:{name}` — {_skill_summary(skill)}")
@@ -117,6 +120,8 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def main() -> int:
+    """Report internal failures without discarding the user's original prompt."""
+
     try:
         output = handle(json.load(sys.stdin))
     except Exception as error:

@@ -36,7 +36,9 @@ def main() -> int:
     contexts = []
     for name, header in policies:
         try:
-            body = skill_body((root / "skills" / name / "SKILL.md").read_text())
+            body = skill_body(
+                (root / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+            )
         except Exception as error:
             messages.append(
                 f"Craft {name.title()} hook failed: {type(error).__name__}: {error}"
