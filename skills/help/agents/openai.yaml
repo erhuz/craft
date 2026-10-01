@@ -1,0 +1,6 @@
+interface:
+  display_name: "Help"
+  short_description: "Explain Craft and discover installed skills"
+  default_prompt: "$craft:help"
+policy:
+  allow_implicit_invocation: false

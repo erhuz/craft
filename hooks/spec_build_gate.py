@@ -22,6 +22,8 @@ INVALID_DISTILL_SCOPE_REASON = (
 
 
 def _skill_summary(skill: Path) -> str:
+    """Reuse installed metadata so Help and the legacy inventory stay current."""
+
     metadata = skill.parent / "agents" / "openai.yaml"
     if metadata.is_file():
         match = re.search(
@@ -53,38 +55,10 @@ def _skill_summary(skill: Path) -> str:
 def render_introduction(root: Path) -> str:
     """Explain the workflow and discover skills from the installed plugin."""
 
-    lines = [
-        "# 🦫 Craft",
-        "",
-        "**Specify clearly. Build minimally. Verify deliberately.**",
-        "",
-        "Craft is a workflow plugin for Codex and Claude Code. It keeps intended "
-        "behavior and remaining work in `SPEC.md`, so you know what to build, "
-        "how to verify it, and what is finished.",
-        "",
-        "## 🚀 Workflow",
-        "",
-        "1. **Specify** — `$craft:spec` defines behavior and tasks in `SPEC.md`. "
-        "Review the specification before building.",
-        "2. **Build** — `$craft:build --next` implements one task, runs the "
-        "required checks, and creates a scoped local commit when they pass. "
-        "Repeat for the remaining tasks.",
-        "3. **Check** — `$craft:check` compares the specification with the code "
-        "and reports mismatches or missing evidence without changing files.",
-        "",
-        "Invoke each phase explicitly. Creating a specification does not start "
-        "Build, and a local commit does not push or deploy your changes.",
-        "",
-        "To get started, send `$craft:spec` with a description of your change. "
-        "For an existing `SPEC.md`, use `$craft:spec amend <section>` with "
-        "the requested change.",
-        "",
-        "## 🧰 Skills",
-        "",
-    ]
+    lines = [(root / "skills" / "help" / "introduction.md").read_text().rstrip(), ""]
     for skill in sorted((root / "skills").glob("*/SKILL.md")):
         name = skill.parent.name
-        lines.append(f"- `$craft:{name}` — {_skill_summary(skill)}")
+        lines.append(f"- `$craft:{name}` / `/craft:{name}` — {_skill_summary(skill)}")
 
     return "\n".join(lines)
 

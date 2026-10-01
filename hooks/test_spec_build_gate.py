@@ -153,8 +153,9 @@ class CraftPromptRouterTest(unittest.TestCase):
         introduction = context.split("\n\n", 1)[1]
 
         self.assertIn("Do not call tools or invoke a skill.", context)
-        self.assertIn("workflow plugin for Codex and Claude Code", introduction)
+        self.assertIn("workflow plugin for Codex and Claude", introduction)
         workflow, skills = introduction.split("## 🧰 Skills", 1)
+        workflow = " ".join(workflow.split())
         self.assertIn("`SPEC.md`", workflow)
         self.assertLess(workflow.index("$craft:spec"), workflow.index("$craft:build --next"))
         self.assertLess(workflow.index("$craft:build --next"), workflow.index("$craft:check"))
@@ -165,7 +166,8 @@ class CraftPromptRouterTest(unittest.TestCase):
         self.assertIn("$craft:spec amend <section>", workflow)
 
         for skill in sorted((root / "skills").glob("*/SKILL.md")):
-            self.assertIn(f"`$craft:{skill.parent.name}` — ", skills)
+            name = skill.parent.name
+            self.assertIn(f"`$craft:{name}` / `/craft:{name}` — ", skills)
 
         plugin_defaults = json.loads(
             (root / ".codex-plugin" / "plugin.json").read_text()
@@ -546,6 +548,88 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_hookless_help_reuses_prose_and_discovers_installed_skills(self) -> None:
+        """Keep Help usable without commands and derive its inventory from shipped files."""
+
+        root = Path(__file__).resolve().parents[1]
+        help_path = root / "skills" / "help"
+        help_text = " ".join((help_path / "SKILL.md").read_text().split())
+        prose = (help_path / "introduction.md").read_text().rstrip()
+        rendered = spec_build_gate.render_introduction(root)
+        self.assertTrue(rendered.startswith(prose + "\n\n"))
+        for contract in (
+            "Read `introduction.md` beside this skill",
+            "host's installed Craft skill catalog",
+            "Include each current skill once in name order",
+            "Do not run Python, shell commands, Git, or inspect a repository",
+            "Help never invokes Spec, Distill, Build, or another workflow phase",
+            "report the missing inventory evidence",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, help_text)
+        listed = re.findall(r"^- `\$craft:([^`]+)` / `/craft:\1` — (.+)$", rendered, re.M)
+        names = [skill.parent.name for skill in sorted((root / "skills").glob("*/SKILL.md"))]
+        self.assertEqual([name for name, _ in listed], names)
+        self.assertTrue(all(summary for _, summary in listed))
+
+        with tempfile.TemporaryDirectory() as temporary:
+            installed = Path(temporary)
+            (installed / "skills" / "help").mkdir(parents=True)
+            (installed / "skills" / "help" / "introduction.md").write_text(prose)
+            newcomer = installed / "skills" / "newcomer" / "SKILL.md"
+            newcomer.parent.mkdir()
+            newcomer.write_text("---\nname: newcomer\n---\n# Newcomer\n\nDescribe current behavior.\n")
+            self.assertEqual(
+                spec_build_gate.render_introduction(installed),
+                prose + "\n\n- `$craft:newcomer` / `/craft:newcomer` — Describe current behavior.",
+            )
+
+    def test_missing_policy_fallback_preserves_mode_and_partial_guidance(self) -> None:
+        """Preserve conversation choices when hooks are absent or load only one policy."""
+
+        root = Path(__file__).resolve().parents[1]
+        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text().split())
+        for contract in (
+            "Do not depend on hooks",
+            "read all of `../ponytail/SKILL.md` or `../clarify/SKILL.md`",
+            "Load only missing guidance",
+            "Read each policy independently",
+            "Missing, unreadable, incomplete, or empty guidance gets a brief diagnostic",
+            "retain every successfully loaded policy",
+            "Preserve the selected Ponytail mode and suspension from conversation context",
+            "Use `full` only when no mode is known",
+            "Loading a policy alone does not reactivate suspended Ponytail",
+            "No file or host state stores these choices",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, entry)
+        for name in ("spec", "build", "backprop"):
+            with self.subTest(phase=name):
+                skill = " ".join((root / "skills" / name / "SKILL.md").read_text().split())
+                self.assertIn("On every run, including delegated or resumed runs", skill)
+                self.assertIn("loading `../ponytail/SKILL.md` and applying its activation rules", skill)
+
+    def test_repository_access_gates_preserve_supplied_artifact_reviews(self) -> None:
+        """Keep inaccessible repositories distinct from absent ledgers or verified source."""
+
+        root = Path(__file__).resolve().parents[1]
+        entry = " ".join((root / "skills" / "_shared" / "entry.md").read_text().split())
+        for contract in (
+            "Before any repository operation",
+            "Plugin resources and supplied attachments do not prove repository access",
+            "Build needs file read/write access, command execution, and Git",
+            "Claude Desktop's Code tab, or a Cowork session",
+            "Stop repository operations until access is available",
+            "Do not report `SPEC_MISSING` because a repository cannot be accessed",
+            "or claim a clean check without source evidence",
+            "requires no Python, Git, or repository access",
+            "Audit may review supplied artifacts without a ledger",
+            "Clarify may rewrite supplied text",
+            "remains an evidence gap",
+        ):
+            with self.subTest(contract=contract):
+                self.assertIn(contract, entry)
+
     def test_build_accepts_unrestricted_explicit_scope_before_work(self) -> None:
         """Remove command-shape and worktree-ownership rejection."""
 
