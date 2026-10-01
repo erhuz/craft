@@ -1,12 +1,17 @@
 ---
 name: audit
+disable-model-invocation: true
+argument-hint: "[artifact or decision]"
 description: >
   Review decision-bearing artifacts for material issues in value, logic, state,
   complexity, failure behavior, or evidence. Use when explicitly invoked as
-  $craft:audit. Read-only decision review; use Check for ledger-to-code drift.
+  $craft:audit or /craft:audit, or selected in the desktop skill menu. Read-only
+  decision review; use Check for ledger-to-code drift.
 ---
 
 # Audit
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Test whether decisions reflect product truth and hold up against evidence and
 consequences. Poke holes in decisions, not authors. Never claim AI provenance

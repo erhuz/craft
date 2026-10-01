@@ -10,13 +10,14 @@ from pathlib import Path
 from typing import Any
 
 
-DISTILL_INVOCATION = re.compile(r"\A\s*\$craft:(?:distill|destill)\s*\Z")
+DISTILL_INVOCATION = re.compile(r"\A\s*[$/]craft:(?:distill|destill)\s*\Z")
 DISTILL_COMMAND_SHAPE = re.compile(
-    r"\A\s*\$craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
+    r"\A\s*[$/]craft:(?:distill|destill)(?=\s|[.!?,;:]|$)"
 )
 CRAFT_DEFAULT_PROMPT = "$craft"
 INVALID_DISTILL_SCOPE_REASON = (
-    "INVALID_SCOPE: use $craft:distill or $craft:destill with no arguments."
+    "INVALID_SCOPE: use $craft:distill, /craft:distill, $craft:destill, "
+    "or /craft:destill with no arguments."
 )
 
 
@@ -96,6 +97,18 @@ def handle(event: dict[str, Any]) -> dict[str, Any] | None:
     may grant or withhold it, and an unusable host environment must never cost
     the user their prompt.
     """
+
+    if event.get("hook_event_name") == "UserPromptExpansion":
+        if (
+            event.get("expansion_type") != "slash_command"
+            or event.get("command_source") != "plugin"
+            or event.get("command_name") not in {"craft:distill", "craft:destill"}
+        ):
+            return None
+        arguments = event.get("command_args")
+        if isinstance(arguments, str) and arguments.strip():
+            return {"decision": "block", "reason": INVALID_DISTILL_SCOPE_REASON}
+        return None
 
     if event.get("hook_event_name") != "UserPromptSubmit":
         return None

@@ -1,12 +1,17 @@
 ---
 name: build
+disable-model-invocation: true
+argument-hint: "[--next | --all | task IDs | ledger paths]"
 description: >
   Implement and verify tasks from one or more SPEC.md ledgers when explicitly
-  invoked as $craft:build. Resolve the requested scope, then complete each task
+  invoked as $craft:build or /craft:build, or selected in the desktop skill menu.
+  Resolve the requested scope, then complete each task
   through its status update and scoped commit in a single-threaded workflow.
 ---
 
 # Build
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Implement one approved SPEC task at a time. Own code and verification; do not
 own semantic spec content.
@@ -19,9 +24,11 @@ this skill's workflow.
 
 ## Interpret request
 
-1. Treat exact first token `$craft:build` as implementation authorization. Do
-   not apply an argument whitelist or reject multiple IDs, selectors, paths,
-   ledgers, or unfamiliar flags solely because of command shape.
+1. Treat exact first token `$craft:build` or `/craft:build`, or the user's
+   explicit selection of the installed Build skill, as implementation
+   authorization. Do not apply an argument whitelist or reject multiple IDs,
+   selectors, paths, ledgers, or unfamiliar flags solely because of command
+   shape.
 2. Treat the remaining prompt as the requested scope. Accept any explicit
    combination that can be resolved to concrete ledgers and tasks; one
    invocation may span multiple ledgers.

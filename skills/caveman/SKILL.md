@@ -1,12 +1,17 @@
 ---
 name: caveman
+disable-model-invocation: true
+argument-hint: "[spec text]"
 description: >
   Encode Craft's SPEC.md and spec-adjacent writes with compact, precise syntax,
-  or invoke explicitly as $craft:caveman. Ordinary explanations, code, errors,
+  or invoke as $craft:caveman or /craft:caveman, or select in the desktop skill
+  menu. Ordinary explanations, code, errors,
   commits, and pull requests keep their normal format.
 ---
 
 # Caveman
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Use this contract as the default for `SPEC.md`, including invariants, interfaces,
 tasks, and bug entries. If the repository root contains `FORMAT.md`, read it and

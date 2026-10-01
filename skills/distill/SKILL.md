@@ -1,12 +1,16 @@
 ---
 name: distill
+disable-model-invocation: true
 description: >
   Compact an existing repository-root SPEC.md through an evidence-backed preview
-  and explicit confirmation. Use only for exact $craft:distill;
-  $craft:destill is the explicit compatibility alias.
+  and explicit confirmation. Invoke as $craft:distill or /craft:distill, or
+  select in the desktop skill menu, with zero arguments.
+  $craft:destill is the explicit compatibility alias; /craft:destill also works.
 ---
 
 # Distill
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Refine the ledger to current intended truth and open work. The first invocation
 authorizes analysis and a complete preview; explicit confirmation of that
@@ -15,9 +19,12 @@ redefine product intent.
 
 ## Parse scope
 
-1. Accept only the exact command `$craft:distill` with no arguments.
+1. Accept only the exact command `$craft:distill` or `/craft:distill` with no
+   arguments, or the user's explicit selection of the installed Distill skill
+   with no arguments.
 2. Let the companion `destill` alias registration translate exact
-   `$craft:destill` to this command before applying this contract.
+   `$craft:destill` or `/craft:destill` to this command before applying this
+   contract.
 3. Return `INVALID_SCOPE` for punctuation, mixed commands, flags, or any other
    argument, and stop before repository inspection or writes.
 

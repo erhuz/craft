@@ -1,12 +1,17 @@
 ---
 name: check
+disable-model-invocation: true
+argument-hint: "[--all | section | task IDs]"
 description: >
   Compare repository-root SPEC.md with current code and report drift, evidence
-  gaps, and remedy hints. Use when explicitly invoked as $craft:check for the
-  current ledger, one supported section, or selected task IDs. Read-only.
+  gaps, and remedy hints. Invoke as $craft:check or /craft:check, or select in
+  the desktop skill menu, for the current ledger, one supported section, or
+  selected task IDs. Read-only.
 ---
 
 # Check
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Establish whether the selected ledger claims match implementation reality.
 Report mismatches with evidence and remedy hints; the user decides whether

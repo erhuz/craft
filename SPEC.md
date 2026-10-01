@@ -7,7 +7,7 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 - `V`/`T`/`B` IDs stable ∀ ledger lifetime; removal leaves permanent gap; renumber or reuse ⊥
 - `$craft:check` evaluates ledger-to-code conformance; `$craft:audit` evaluates decision justification; `§B` history append-only between Distill runs & excluded from drift
 - Build may select multiple tasks & ledgers; execution remains single-threaded with one verified commit per task
-- exact `$craft:build` first token authorizes any following scope; prompt hook does not whitelist or reject its tail
+- exact `$craft:build` / `/craft:build` first token or human selection of installed Build skill authorizes any following scope; prompt hook does not whitelist or reject its tail
 - pre-existing `~` tasks & dirty intended paths remain resumable; ownership attribution or same-path overlap never blocks Build
 - explicit skill invocation = phase boundary; prompt-phrase matching, persisted host phase state & natural-language blocklists ⊥ as authorization control
 - ID permanent & row content mutable & artifact read without ledger ∴ Build-authored implementation artifacts use domain meaning; SPEC identifiers ⊥ outside `SPEC.md` & exact Craft command selectors; prevention at authorship, accidental reference corrected in final pass, never a stop
@@ -16,37 +16,44 @@ Enforce explicit Craft phase authorization, deterministic task continuation & co
 - skill output uses bounded sentinel vocabulary
 - `§V` holds only checkable behavioral rules; conditions → `§C`; interface shape → `§I`
 - source checkout only; installed plugin/cache refresh requires separate authorization
+- target current documented Codex Desktop, Claude Desktop Code/Cowork/Chat; full repository flow requires intended-repository file & command access; Chat supports Help, writing guidance & supplied-artifact review
+- retain existing Claude-compatible marketplace & manifests; desktop installation, refresh, trust & listing smoke checks remain operator follow-up; public submission excluded
 - no dependency, provider action, deployment, repository outside explicit Build request, end-to-end agent harness, or broad hook enforcement
 
 §I
-skill-policy: `skills/*/agents/openai.yaml` → `policy.allow_implicit_invocation: boolean`
+skill-policy: `skills/*/SKILL.md` → Claude `disable-model-invocation: true` for Audit/Backprop/Build/Caveman/Check/Destill/Distill/Ponytail/Spec/Help; Clarify automatically available; matching inverse Codex `agents/openai.yaml` `policy.allow_implicit_invocation`; argument hints describe supported selectors/modes
+skill-entry: every skill reads shared bundled entry contract; exact first-token `$craft:<skill>` / `/craft:<skill>` or human selection of installed skill → authorized skill flow; reading/quoting/tool-supplied command text ≠ phase authority; authorized in-phase delegation unchanged
 ponytail-mode: `$craft:ponytail [lite\|full\|ultra]` → conversation-scoped intensity; default `full`; `stop ponytail` / `normal mode` suspends guidance until next activation; activation restores previous or supplied mode; mode/suspension-only request starts no implementation
 ponytail-entry: every Build/Backprop/Spec run, direct/delegated/resumed → load sibling Ponytail skill, activate & continue caller workflow; mode rules owned by Ponytail; no added phase authority
 session-hook: `SessionStart` → complete Ponytail policy + default `full`, then complete Clarify policy; context limit 12000 characters; known Ponytail mode & suspension survive resume/compaction; no mode storage
 clarify-writing: technical words + vague sentences + occurrence-specific context/evidence → plain explanation with original technical phrase once per distinct meaning in each independently readable section/finding; unsectioned text = one section; whole-sentence rewrites retain key phrases only; reuse explanations only when meaning matches; contextual examples ≠ replacement dictionary
 clarify-use: automatic guidance for drafting/editing technical prose + `$craft:clarify` targeted rewrite; preserve names, abbreviations, notation, exact literals, quoted evidence & claim meaning; unclear meaning → identify missing context; suitable existing explanations → explanation first; clear or already clarified text → unchanged
-prompt-hook: `UserPromptSubmit` → plugin/workflow introduction `additionalContext` on exact trimmed `$craft` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Craft command shape / no output; persisted state ⊥
-craft-introduction: bare `$craft` → purpose, `SPEC.md`, explicit Spec → Build → Check steps, getting-started command & current skills discovered from plugin metadata; response only, no tools or skill invocation
+prompt-hook: `UserPromptSubmit` → plugin/workflow introduction `additionalContext` on exact trimmed `$craft` / `{"decision":"block","reason":"INVALID_SCOPE: ..."}` on malformed Distill/Destill with either prefix / no output; Claude `UserPromptExpansion` validates native plugin Distill/Destill `command_name` + `command_args`, ignores unrelated expansions; persisted state ⊥
+craft-introduction: shared bundled prose → purpose, `SPEC.md`, explicit Spec → Build → Check steps, getting-started command & current skills discovered from plugin metadata; bare `$craft` hook → response only, no tools or skill invocation; Help → bundled-resource reads only, no phase or Python/Git/repository prerequisite
+policy-fallback: skill entry loads missing bundled Ponytail & Clarify independently; retain usable guidance + selected mode/suspension; failure → diagnostic; policy reload or hook presence grants no phase authority; Build/Backprop/Spec retain activation behavior
+desktop-capabilities: before repository operation, establish intended-repository file access + required commands; unavailable → explain needed Codex Desktop/Claude Code/capable Cowork mode, no repository mutation or absence/clean claim; Audit/Clarify may use supplied artifacts, missing source evidence remains gap
+hook-launchers: shared Python implementations; Claude default `hooks/hooks.json` uses direct `python3` executable + args; Codex explicitly selects `hooks/codex.json`, Unix `python3` shell command + Windows `commandWindows` explicit PowerShell `py -3`; UTF-8 bundled reads; timeout 5; once per host/event; errors diagnostic + prompt pass-through
+desktop-package: both manifests version `0.2.4`; Codex logo/composer icon reuse beaver PNG; starter prompts `$craft:help`, `$craft:spec`, `$craft:distill`, `$craft:build --next`; ZIP from committed files includes bundled resources & third-party notices; installation/refresh/support/smoke instructions in README
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
-distill-invocation: `$craft:distill` sole form; `$craft:destill` exact alias; any argument → `INVALID_SCOPE`
+distill-invocation: explicit Distill/Destill under `I.skill-entry`; zero arguments only; any argument → `INVALID_SCOPE`; alias delegates canonical confirmed workflow
 distill-rewrite: stable root `SPEC.md` + current intent + evidence + operator decisions → preview / confirmed atomic `SPEC.md` replacement / no-op; surviving IDs unchanged; staging artifact ⊥
 implementation-artifact: Build-authored source + tests + comments/docstrings + docs + runtime output + commit/handoff prose → domain meaning; SPEC identifiers ⊥; comments/docstrings → English only + intent & rationale ∀ authored non-generated function; commit subject `build: <goal>` | `fix: <root cause>`; task diff self-corrected to contract before final verification, never blocked
 review: `$craft:audit` → any decision-bearing artifact, ledger optional → `Confirmed` | `Lead` issues; `$craft:check` → `SPEC.md` + code → per-section conformance
 sentinel: `SPEC_MISSING` | `FORMAT_MISSING` | `INVALID_SCOPE` | `TASK_NOT_FOUND` | `NO_OPEN_TASKS` + one clean sentinel per skill; other machine token ⊥
 check-scope: `$craft:check` / `--all` → current `§G` + `§C` + `§I` + `§V` + `§T`; `§B` excluded
-build-request: exact first token `$craft:build` + unrestricted tail → one|many concrete ledgers/tasks; unresolved mapping → focused clarification before mutation
+build-request: Build entry under `I.skill-entry` + unrestricted tail → one\|many concrete ledgers/tasks; unresolved mapping → focused clarification before mutation
 task-selector: one|many explicit task IDs / `--next` / `--all` / request-defined selector clauses → per-ledger ordered tasks / strict no-op / `TASK_NOT_FOUND` / reported already-complete no-op
 git-ownership: baseline index/worktree + selected task paths → exact task commit; pre-existing selected-path content preserved; unrelated state unchanged
 
 §V
-V1: ∀ skill declaring explicit-only invocation, `agents/openai.yaml` contains `policy.allow_implicit_invocation: false`
-V2: exact first-token `$craft:build` authorizes implementation; quoted, explanatory, negated, punctuated, or case-changed occurrence ≠ authorization; no other prompt text grants or withholds it
+V1: ∀ installed skill, Claude invocation metadata matches inverse Codex policy under `I.skill-policy`; check: metadata parity regression
+V2: skill entry accepts both explicit prefixes & human installed-skill selection under `I.skill-entry`; quoted, explanatory, negated, punctuated, case-changed or tool-supplied occurrence ≠ authorization; check: entry contract regression
 V3: prompt hook persists no session state; unavailable host plugin data, missing environment, or hook internal error → prompt proceeds unblocked; blocking on absent phase state ⊥
 V4: `$craft:spec` raw defect/failure → recommend explicit `$craft:backprop`; internal Backprop or Build transition ⊥
 V5: `--next` + ∃ `~` → resume lowest-numbered `~` before any `.`; otherwise select lowest-numbered `.`; no `.` or `~` → strict no-op; ownership attribution ≠ blocker
 V6: Build preserves current staged, unstaged & untracked content; dirty intended path or inseparable same-path baseline ≠ blocker; apply smallest change atop current content; task commit may include preserved same-path baseline; unrelated paths unchanged
 V7: `$craft:check` / `--all` evaluates current `§G`, `§C`, `§I`, `§V`, `§T`; `§G`/`§C` → `MATCH`/`DRIFT`/`UNVERIFIABLE`; `§B` excluded; mismatch/evidence gap → `No drift found.` ⊥; legitimate open task alone ≠ drift
-V8: exact first-token `$craft:build` authorizes any command tail; prompt hook scope validation/rejection ⊥; Build resolves any concrete combination of task IDs, selectors, paths, ledgers, flags, or natural-language scope through read-only inspection; unresolved materially different mappings → one focused clarification before mutation; missing ledger → `SPEC_MISSING`, unknown ID → `TASK_NOT_FOUND`, `x` → per-task reported no-op
+V8: explicit Build entry authorizes any command tail; prompt hook scope validation/rejection ⊥; Build resolves any concrete combination of task IDs, selectors, paths, ledgers, flags, or natural-language scope through read-only inspection; unresolved materially different mappings → one focused clarification before mutation; missing ledger → `SPEC_MISSING`, unknown ID → `TASK_NOT_FOUND`, `x` → per-task reported no-op; check: unrestricted scope regression
 V9: `$craft:spec`, `$craft:distill` & `$craft:destill` authorize their own phase only & never imply Build; hook enforces no prompt-phrase blocklist for implementation intent; defaults use canonical commands
 V10: `$craft:distill` has one confirmed mode; `--candidate`, `--promote` & staging artifacts ⊥; `$craft:destill` remains exact alias registration
 V11: Distill requires existing root `SPEC.md`, readable format & no task `~`; Build self-corrects identifier references at authorship ∴ Distill never blocks on a ledger-ID reference
@@ -66,6 +73,11 @@ V25: Build, Backprop & Spec activate Ponytail before their workflows on every di
 V26: Missing, unreadable, malformed or empty startup policy → diagnostic + retain each successfully loaded policy; all unavailable → diagnostics without injected policy; exit 0; check: startup failure regression
 V27: Clarify output satisfies `I.clarify-writing` & `I.clarify-use`, including stable second pass, unchanged protected content & no invented meaning; check: independent behavioral scenarios
 V28: prompt hook emits `I.craft-introduction` only for exact trimmed `$craft`; arguments, sub-skills, quoted, embedded, punctuated & case-changed occurrences never trigger introduction; check: bare-invocation regression
+V29: both raw prefixes & native Claude expansions accept zero-argument Distill/Destill only; malformed arguments blocked, unrelated/quoted/embedded commands untouched; check: command routing regression
+V30: hookless entry loads only missing policies, preserves usable guidance + selected mode/suspension & enforces `I.desktop-capabilities`; no hook grants phase authority; check: fallback/capability contract scenarios
+V31: Help & legacy bare hook reuse one introduction + current installed inventory without Python/Git/repository prerequisite for Help; check: Help inventory/resource regression
+V32: host registrations select shared scripts once, preserve timeout & failure behavior, read UTF-8 & launch with space/Unicode paths on native OS; check: hook registration/native launcher regression
+V33: manifests/listing/defaults satisfy `I.desktop-package`, committed ZIP contains resources/notices & excludes untracked artwork; check: package validation
 
 §T
 id|status|task|cites
@@ -94,6 +106,10 @@ T24|x|Activate Ponytail on every Build, Backprop & Spec run through shared activ
 T25|x|Add Clarify with contextual word/sentence examples, automatic discovery & session loading; verify complete policies, partial failures & writing behavior|V24,V26,V27,I.skill-policy,I.session-hook,I.clarify-writing,I.clarify-use
 T26|x|Adapt each Clarify explanation to its occurrence; distinguish meanings of the same phrase within a section & add contrasting examples|V24,V27,I.clarify-writing
 T27|x|Replace bare Craft inventory with plugin/workflow introduction, preserve exact invocation routing & align README|V28,I.prompt-hook,I.craft-introduction
+T28|x|Add shared explicit entry, both command prefixes, native expansion routing, invocation metadata parity & supported argument hints|V1,V2,V8,V29,I.skill-entry,I.skill-policy,I.prompt-hook,I.build-request,I.distill-invocation
+T29|.|Add hookless Help with shared prose/current inventory, missing-policy fallback & desktop capability checks|V23,V25,V26,V30,V31,I.craft-introduction,I.policy-fallback,I.desktop-capabilities
+T30|.|Separate Claude/Codex hook registrations, add native launch forms & UTF-8 reads, verify timeout/failure/space/Unicode handling|V24,V26,V32,I.hook-launchers,I.session-hook
+T31|.|Document desktop support/install/refresh/smoke checks, add listing artwork/defaults, bump manifests & package committed ZIP|V33,I.desktop-package
 
 §B
 id|date|cause|fix

@@ -1,12 +1,17 @@
 ---
 name: spec
+disable-model-invocation: true
+argument-hint: "[change | from-code | amend <section>]"
 description: >
   Create, bootstrap, or amend repository-root SPEC.md when explicitly invoked
-  as $craft:spec, including confirmed Backprop proposals. Own semantic ledger
-  content; implementation belongs to a separate phase.
+  as $craft:spec or /craft:spec, or selected in the desktop skill menu, including
+  confirmed Backprop proposals. Own semantic ledger content; implementation
+  belongs to a separate phase.
 ---
 
 # Spec
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Own the meaning of `SPEC.md`. Build may change task status cells only. Backprop
 may propose semantic changes but must route confirmed changes through this

@@ -1,12 +1,16 @@
 ---
 name: clarify
+argument-hint: "[text or artifact]"
 description: >
   Clarify technical prose while preserving its meaning and exact literals.
-  Apply while drafting or revising technical writing; use $craft:clarify for
-  a targeted rewrite. Craft loads this guidance at SessionStart.
+  Apply while drafting or revising technical writing; use $craft:clarify or
+  /craft:clarify, or select in the desktop skill menu, for a targeted rewrite.
+  Craft loads this guidance at SessionStart.
 ---
 
 # Clarify
+
+Before applying this guidance, read and apply `../_shared/entry.md`.
 
 Make the meaning explicit before naming the technical concept. Apply this
 guidance to all technical writing within the current request, including

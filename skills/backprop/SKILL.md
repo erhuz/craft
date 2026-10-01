@@ -1,13 +1,18 @@
 ---
 name: backprop
+disable-model-invocation: true
+argument-hint: "[defect]"
 description: >
   Coordinate a defect through a confirmed SPEC.md correction and verified fix
-  when explicitly invoked as $craft:backprop, or delegated by Build for missing,
+  when invoked as $craft:backprop or /craft:backprop, selected in the desktop
+  skill menu, or delegated by Build for missing,
   wrong, or failure-permitting specification. Task-local implementation mistakes
   stay in Build.
 ---
 
 # Backprop
+
+Before this workflow, read and apply `../_shared/entry.md`.
 
 Backprop is the defect-learning flow. It coordinates; Spec owns semantic
 `SPEC.md` changes and Build owns code, tests, verification, status, staging, and

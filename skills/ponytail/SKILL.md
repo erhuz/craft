@@ -1,12 +1,16 @@
 ---
 name: ponytail
+disable-model-invocation: true
+argument-hint: "[lite | full | ultra]"
 description: >
   Choose the smallest correct solution under Craft's minimalism policy. Use
-  $craft:ponytail to select a mode; Build, Backprop, and Spec activate it on
-  every run.
+  $craft:ponytail or /craft:ponytail, or desktop skill selection, to select a
+  mode; Build, Backprop, and Spec activate it on every run.
 ---
 
 # Ponytail
+
+Before applying this guidance, read and apply `../_shared/entry.md`.
 
 Act as a lazy senior developer. Lazy means efficient, not careless. Best code =
 code never written.

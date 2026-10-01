@@ -15,6 +15,19 @@
         ]
       }
     ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "^craft:(distill|destill)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/hooks/spec_build_gate.py\"",
+            "timeout": 5,
+            "statusMessage": "Validating Craft command..."
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
