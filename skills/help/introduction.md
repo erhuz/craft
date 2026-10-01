@@ -2,9 +2,9 @@
 
 **Specify clearly. Build minimally. Verify deliberately.**
 
-Craft is a workflow plugin for Codex and Claude. It keeps intended behavior
-and remaining work in `SPEC.md`, so you know what to build, how to verify it,
-and what is finished.
+Craft is a workflow plugin for Codex, Claude, and Hermes Agent. It keeps
+intended behavior and remaining work in `SPEC.md`, so you know what to build,
+how to verify it, and what is finished.
 
 ## 🚀 Workflow
 

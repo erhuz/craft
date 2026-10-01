@@ -33,7 +33,8 @@ craft-introduction: shared bundled prose → purpose, `SPEC.md`, explicit Spec �
 policy-fallback: skill entry loads missing bundled Ponytail & Clarify independently; retain usable guidance + selected mode/suspension; failure → diagnostic; policy reload or hook presence grants no phase authority; Build/Backprop/Spec retain activation behavior
 desktop-capabilities: before repository operation, establish intended-repository file access + required commands; unavailable → explain needed Codex Desktop/Claude Code/capable Cowork mode, no repository mutation or absence/clean claim; Audit/Clarify may use supplied artifacts, missing source evidence remains gap
 hook-launchers: shared Python implementations; Claude default `hooks/hooks.json` uses direct `python3` executable + args; Codex explicitly selects `hooks/codex.json`, Unix `python3` shell command + Windows `commandWindows` explicit PowerShell `py -3`; UTF-8 bundled reads; timeout 5; once per host/event; errors diagnostic + prompt pass-through
-desktop-package: both manifests version `0.2.4`; Codex logo/composer icon reuse beaver PNG; starter prompts `$craft:help`, `$craft:spec`, `$craft:distill`, `$craft:build --next`; ZIP from committed files includes bundled resources & third-party notices; installation/refresh/support/smoke instructions in README
+desktop-package: Claude/Codex manifests & Hermes metadata version `0.2.5`; Codex logo/composer icon reuse beaver PNG; starter prompts `$craft:help`, `$craft:spec`, `$craft:distill`, `$craft:build --next`; ZIP from committed files includes bundled resources & third-party notices; installation/refresh/support/smoke instructions in README
+release: preserve incoming Hermes adapter & shared startup renderer; integrate `origin/main`, verify combined source, commit, push `main`, publish unused `v0.2.5` + matching ZIP; existing published tags/releases unchanged; installed refresh & public directory submission separate
 phase-authority: `$craft:spec` → SPEC semantics; `$craft:distill` / `$craft:destill` → confirmed SPEC compaction; `$craft:backprop` → explicit or Build-delegated defect flow; `$craft:build` → implementation authority; `$craft:audit` & `$craft:check` → read-only review
 distill-invocation: explicit Distill/Destill under `I.skill-entry`; zero arguments only; any argument → `INVALID_SCOPE`; alias delegates canonical confirmed workflow
 distill-rewrite: stable root `SPEC.md` + current intent + evidence + operator decisions → preview / confirmed atomic `SPEC.md` replacement / no-op; surviving IDs unchanged; staging artifact ⊥
@@ -110,6 +111,7 @@ T28|x|Add shared explicit entry, both command prefixes, native expansion routing
 T29|x|Add hookless Help with shared prose/current inventory, missing-policy fallback & desktop capability checks|V23,V25,V26,V30,V31,I.craft-introduction,I.policy-fallback,I.desktop-capabilities
 T30|x|Separate Claude/Codex hook registrations, add native launch forms & UTF-8 reads, verify timeout/failure/space/Unicode handling|V24,V26,V32,I.hook-launchers,I.session-hook
 T31|x|Document desktop support/install/refresh/smoke checks, add listing artwork/defaults, bump manifests & package committed ZIP|V33,I.desktop-package
+T32|x|Integrate published Hermes changes & prepare verified release source, metadata/docs/tests & matching ZIP|V24,V26,V31,V32,V33,I.desktop-package,I.release
 
 §B
 id|date|cause|fix

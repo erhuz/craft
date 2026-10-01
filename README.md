@@ -13,10 +13,11 @@
 <p align="center">
   <a href="#-codex"><img src="https://img.shields.io/badge/Codex-plugin-0B4B38?style=flat-square" alt="Codex plugin"></a>
   <a href="#-claude-code"><img src="https://img.shields.io/badge/Claude_Code-plugin-0B4B38?style=flat-square" alt="Claude Code plugin"></a>
+  <a href="#-hermes-agent"><img src="https://img.shields.io/badge/Hermes_Agent-plugin-0B4B38?style=flat-square" alt="Hermes Agent plugin"></a>
   <a href="#-claude-desktop"><img src="https://img.shields.io/badge/Claude_Desktop-plugin-0B4B38?style=flat-square" alt="Claude Desktop plugin"></a>
 </p>
 
-Craft is a workflow plugin for Codex and Claude that turns software changes into compact specifications, verified implementation, and lessons from confirmed defects. Repository workflows run in Codex Desktop, Claude Desktop's Code tab, and Cowork sessions with the necessary file and command access. Help, writing guidance, and review of supplied artifacts also work in Claude Chat.
+Craft is a workflow plugin for Codex, Claude, and Hermes Agent that turns software changes into compact specifications, verified implementation, and lessons from confirmed defects. Repository workflows run in Codex Desktop, Claude Desktop's Code tab, and Cowork sessions with the necessary file and command access. Help, writing guidance, and review of supplied artifacts also work in Claude Chat.
 
 Coding agents can move quickly from an idea to code while leaving intent, scope, and completion unclear. Craft makes each part explicit:
 
@@ -39,7 +40,7 @@ Coding agents can move quickly from an idea to code while leaving intent, scope,
 
 ### 📋 Prerequisites
 
-- A current client supporting plugins and the documented hook features.
+- A current client supporting plugins and the documented hook features, or Hermes Agent with native plugin support.
 - For Claude hooks: `python3` on `PATH`, including a real executable on Windows. For Codex hooks: `python3` on Unix, or PowerShell and the Windows Python launcher `py -3` on Windows. The scripts use only the Python standard library.
 - For repository workflows: access to the intended repository and required commands. Build also needs Git and the project's verification tools.
 
@@ -75,6 +76,17 @@ Run these commands inside Claude Code:
 
 Start a new session in your project so Craft's startup hook also runs. These are machine-local installations, including project or local scopes; they do not install Craft into your Claude account. See the [official CLI plugin installation guide](https://code.claude.com/docs/en/discover-plugins) for scopes and troubleshooting.
 
+### ☤ Hermes Agent
+
+Run these commands in your terminal:
+
+```sh
+hermes plugins install erhuz/craft
+hermes plugins enable craft
+```
+
+Start a new Hermes session in your project. Send `$craft` or `$craft:...` as a regular chat message; Hermes loads the corresponding namespaced skill through Craft's prompt hook. Hermes also exposes the bundled skills to its `skill_view` tool under names such as `craft:spec`. See the [Hermes plugin guide](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/plugins.md) for installation and activation details.
+
 ### ✅ Verify installation
 
 Start a new chat or session and explicitly choose Craft's Help skill in the message box, or send the command for your client:
@@ -84,7 +96,7 @@ $craft:help
 /craft:help
 ```
 
-Use `$craft:help` in Codex and `/craft:help` in Claude. Help explains Spec → Build → Check and lists the current installed skills without starting a phase. Check the installed version is `0.2.4` and Help appears in the skill menu. With trusted hooks, legacy bare `$craft` also returns that introduction; in hookless Chat, use Help.
+Use `$craft:help` in Codex and `/craft:help` in Claude. Help explains Spec → Build → Check and lists the current installed skills without starting a phase. Check the installed version is `0.2.5` and Help appears in the skill menu. With trusted hooks, legacy bare `$craft` also returns that introduction; in hookless Chat, use Help.
 
 ### 🔄 Refresh an installed copy
 
@@ -230,6 +242,7 @@ hooks/test_spec_build_gate.py
                            Regression checks for hooks and workflow contracts
 .codex-plugin/plugin.json  Codex plugin manifest
 .claude-plugin/            Claude manifest and shared marketplace catalog
+plugin.yaml, __init__.py    Hermes Agent native plugin adapter
 SPEC.md                   Craft's own specification and task ledger
 FORMAT.md                 Local specification format
 assets/                   README and desktop listing artwork
@@ -243,6 +256,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s hooks -p 'test_*.py' -
 claude plugin validate --strict .claude-plugin/marketplace.json
 claude plugin validate --strict .claude-plugin/plugin.json
 claude plugin validate --strict skills
+hermes plugins doctor . --ci
 git diff --check
 ```
 
@@ -256,10 +270,10 @@ After committing the source changes, run from the repository root:
 
 ```sh
 mkdir -p output/releases
-git archive --format=zip --output=output/releases/craft-0.2.4.zip HEAD
+git archive --format=zip --output=output/releases/craft-0.2.5.zip HEAD
 ```
 
-`git archive` packages committed files, including both manifests, shared resources, Help, hook registrations, the beaver PNG, and `THIRD_PARTY_LICENSES/ponytail.txt`. Untracked artwork and `.git` are excluded. Check the archive holds one `.claude-plugin/plugin.json` and both manifests report `0.2.4` before using Claude's Upload plugin route. Do not substitute a ZIP of the working directory, which may include local files or omit hidden manifests.
+`git archive` packages committed files, including both manifests, the Hermes adapter, shared resources, Help, hook registrations, the beaver PNG, and `THIRD_PARTY_LICENSES/ponytail.txt`. Untracked artwork and `.git` are excluded. Check the archive holds one `.claude-plugin/plugin.json` and both manifests plus `plugin.yaml` report `0.2.5` before using Claude's Upload plugin route. Do not substitute a ZIP of the working directory, which may include local files or omit hidden manifests.
 
 ### 🧪 Desktop smoke checks — operator follow-up
 

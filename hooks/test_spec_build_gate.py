@@ -155,7 +155,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         introduction = context.split("\n\n", 1)[1]
 
         self.assertIn("Do not call tools or invoke a skill.", context)
-        self.assertIn("workflow plugin for Codex and Claude", introduction)
+        self.assertIn("workflow plugin for Codex, Claude, and Hermes Agent", introduction)
         workflow, skills = introduction.split("## 🧰 Skills", 1)
         workflow = " ".join(workflow.split())
         self.assertIn("`SPEC.md`", workflow)
@@ -559,8 +559,13 @@ class CraftSkillPolicyTest(unittest.TestCase):
         codex = json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         claude = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(codex["name"], claude["name"])
-        self.assertEqual(codex["version"], "0.2.4")
+        self.assertEqual(codex["version"], "0.2.5")
         self.assertEqual(codex["version"], claude["version"])
+        hermes_version = re.search(
+            r'^version:\s*"([^"]+)"', (root / "plugin.yaml").read_text(encoding="utf-8"), re.M,
+        )
+        self.assertIsNotNone(hermes_version)
+        self.assertEqual(hermes_version[1], codex["version"])
         interface = codex["interface"]
         self.assertEqual(interface["defaultPrompt"], [
             "$craft:help", "$craft:spec", "$craft:distill", "$craft:build --next",
