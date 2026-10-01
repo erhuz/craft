@@ -109,7 +109,7 @@ T27|x|Replace bare Craft inventory with plugin/workflow introduction, preserve e
 T28|x|Add shared explicit entry, both command prefixes, native expansion routing, invocation metadata parity & supported argument hints|V1,V2,V8,V29,I.skill-entry,I.skill-policy,I.prompt-hook,I.build-request,I.distill-invocation
 T29|x|Add hookless Help with shared prose/current inventory, missing-policy fallback & desktop capability checks|V23,V25,V26,V30,V31,I.craft-introduction,I.policy-fallback,I.desktop-capabilities
 T30|x|Separate Claude/Codex hook registrations, add native launch forms & UTF-8 reads, verify timeout/failure/space/Unicode handling|V24,V26,V32,I.hook-launchers,I.session-hook
-T31|.|Document desktop support/install/refresh/smoke checks, add listing artwork/defaults, bump manifests & package committed ZIP|V33,I.desktop-package
+T31|x|Document desktop support/install/refresh/smoke checks, add listing artwork/defaults, bump manifests & package committed ZIP|V33,I.desktop-package
 
 §B
 id|date|cause|fix

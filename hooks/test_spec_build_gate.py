@@ -552,6 +552,26 @@ class CraftPromptRouterTest(unittest.TestCase):
 
 
 class CraftSkillPolicyTest(unittest.TestCase):
+    def test_desktop_listing_reuses_artwork_and_exposes_canonical_starters(self) -> None:
+        """Keep the installable version and desktop entry points consistent across manifests."""
+
+        root = Path(__file__).resolve().parents[1]
+        codex = json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        claude = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(codex["name"], claude["name"])
+        self.assertEqual(codex["version"], "0.2.4")
+        self.assertEqual(codex["version"], claude["version"])
+        interface = codex["interface"]
+        self.assertEqual(interface["defaultPrompt"], [
+            "$craft:help", "$craft:spec", "$craft:distill", "$craft:build --next",
+        ])
+        self.assertEqual(interface["composerIcon"], "./assets/craft-beaver.png")
+        self.assertEqual(interface["logo"], interface["composerIcon"])
+        self.assertTrue((root / interface["logo"]).read_bytes().startswith(b"\x89PNG\r\n\x1a\n"))
+        marketplace = json.loads((root / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual(marketplace["name"], "erhuz")
+        self.assertEqual([(plugin["name"], plugin["source"]) for plugin in marketplace["plugins"]], [("craft", "./")])
+
     def test_hookless_help_reuses_prose_and_discovers_installed_skills(self) -> None:
         """Keep Help usable without commands and derive its inventory from shipped files."""
 

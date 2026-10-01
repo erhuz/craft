@@ -1,6 +1,6 @@
 {
   "name": "craft",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Specify and distill current behavior, build minimally, audit decisions, check drift, and learn from confirmed defects.",
   "author": {
     "name": "Benjamin Fransson"
@@ -16,6 +16,8 @@
   "hooks": "./hooks/codex.json",
   "interface": {
     "displayName": "Craft",
+    "composerIcon": "./assets/craft-beaver.png",
+    "logo": "./assets/craft-beaver.png",
     "shortDescription": "Specify, distill, build, audit, check drift, and learn",
     "longDescription": "A personal workflow combining compact specifications, confirmed current-truth distillation, minimal implementation, conservative decision audits, drift detection, and defect backpropagation.",
     "developerName": "Benjamin Fransson",
@@ -25,7 +27,7 @@
       "Write"
     ],
     "defaultPrompt": [
-      "$craft",
+      "$craft:help",
       "$craft:spec",
       "$craft:distill",
       "$craft:build --next"
