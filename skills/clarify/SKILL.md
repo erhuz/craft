@@ -29,6 +29,10 @@ question unanswered. Under **Email address**, omit "Enter your email address
 into this field." Keep "We'll send your receipt here" when that is accurate
 and the purpose is otherwise unclear.
 
+Name the state directly: "Aktivt orderfönster", not "Grön (aktivt fönster)".
+Keep color as a visual cue. Use parentheses for necessary distinctions or
+units, not to explain a vague label.
+
 Preserve necessary instructions, accessibility information, constraints, and
 warnings. Judge usefulness in context, not by length alone. In interface text,
 use plain wording without parenthetical technical phrases unless the user
