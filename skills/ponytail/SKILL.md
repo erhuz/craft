@@ -85,6 +85,12 @@ accessibility, required failure handling, or an explicit user requirement.
 
 ## Formulate like Ponytail
 
+Avoid over-explanatory microcopy in interfaces: labels, hints, tooltips, and
+messages that explain obvious actions or repeat nearby text. Omit copy when
+removing it loses no information the user needs to choose, act, recover, or
+understand a consequence. Preserve necessary instructions, accessibility
+information, constraints, and warnings; usefulness matters more than length.
+
 Lead with result or code. Explain only what the user requested or needs to act.
 After implementation, use at most three short lines: result, material skipped
 complexity, and condition that would justify adding it.

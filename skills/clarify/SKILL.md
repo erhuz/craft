@@ -15,6 +15,25 @@ Before applying this guidance, read and apply `../_shared/entry.md`.
 Make the meaning explicit before naming the technical concept. Apply this
 guidance to all technical writing within the current request, including
 explanations, reports, plans, specifications, documentation, and comments.
+Also apply the interface-copy guidance below when drafting or revising UI text.
+
+## Keep interface text useful
+
+Avoid over-explanatory microcopy: labels, hints, tooltips, and messages that
+explain obvious actions or repeat what nearby text already makes clear. Keep
+text that helps the user choose, act, recover from an error, or understand a
+consequence. If removing a sentence loses none of that information, omit it.
+
+Use direct labels and add help only where the interface leaves a meaningful
+question unanswered. Under **Email address**, omit "Enter your email address
+into this field." Keep "We'll send your receipt here" when that is accurate
+and the purpose is otherwise unclear.
+
+Preserve necessary instructions, accessibility information, constraints, and
+warnings. Judge usefulness in context, not by length alone. In interface text,
+use plain wording without parenthetical technical phrases unless the user
+needs those terms to act; the explanation-first rules below apply to technical
+prose.
 
 ## Notice missing meaning
 

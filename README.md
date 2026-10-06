@@ -96,7 +96,7 @@ $craft:help
 /craft:help
 ```
 
-Use `$craft:help` in Codex and `/craft:help` in Claude. Help explains Spec → Build → Check and lists the current installed skills without starting a phase. Check the installed version is `0.2.5` and Help appears in the skill menu. With trusted hooks, legacy bare `$craft` also returns that introduction; in hookless Chat, use Help.
+Use `$craft:help` in Codex and `/craft:help` in Claude. Help explains Spec → Build → Check and lists the current installed skills without starting a phase. Check the installed version is `0.2.6` and Help appears in the skill menu. With trusted hooks, legacy bare `$craft` also returns that introduction; in hookless Chat, use Help.
 
 ### 🔄 Refresh an installed copy
 
@@ -270,10 +270,10 @@ After committing the source changes, run from the repository root:
 
 ```sh
 mkdir -p output/releases
-git archive --format=zip --output=output/releases/craft-0.2.5.zip HEAD
+git archive --format=zip --output=output/releases/craft-0.2.6.zip HEAD
 ```
 
-`git archive` packages committed files, including both manifests, the Hermes adapter, shared resources, Help, hook registrations, the beaver PNG, and `THIRD_PARTY_LICENSES/ponytail.txt`. Untracked artwork and `.git` are excluded. Check the archive holds one `.claude-plugin/plugin.json` and both manifests plus `plugin.yaml` report `0.2.5` before using Claude's Upload plugin route. Do not substitute a ZIP of the working directory, which may include local files or omit hidden manifests.
+`git archive` packages committed files, including both manifests, the Hermes adapter, shared resources, Help, hook registrations, the beaver PNG, and `THIRD_PARTY_LICENSES/ponytail.txt`. Untracked artwork and `.git` are excluded. Check the archive holds one `.claude-plugin/plugin.json` and both manifests plus `plugin.yaml` report `0.2.6` before using Claude's Upload plugin route. Do not substitute a ZIP of the working directory, which may include local files or omit hidden manifests.
 
 ### 🧪 Desktop smoke checks — operator follow-up
 

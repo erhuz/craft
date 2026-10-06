@@ -559,7 +559,7 @@ class CraftSkillPolicyTest(unittest.TestCase):
         codex = json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         claude = json.loads((root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual(codex["name"], claude["name"])
-        self.assertEqual(codex["version"], "0.2.5")
+        self.assertEqual(codex["version"], "0.2.6")
         self.assertEqual(codex["version"], claude["version"])
         hermes_version = re.search(
             r'^version:\s*"([^"]+)"', (root / "plugin.yaml").read_text(encoding="utf-8"), re.M,
