@@ -4,7 +4,23 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
+
+
+# Claude Code moves larger hook context to a file and injects only a preview.
+CONTEXT_LIMIT = 10000
+BUNDLED_PATH = re.compile(r"`((?:\.\./)?[\w./-]+\.md)`")
+
+
+def resolve_paths(body: str, skill_dir: Path) -> str:
+    """Make bundled relative references readable from injected context."""
+
+    def absolute(match: re.Match[str]) -> str:
+        target = (skill_dir / match.group(1)).resolve()
+        return f"`{target}`" if target.is_file() else match.group(0)
+
+    return BUNDLED_PATH.sub(absolute, body)
 
 
 def skill_body(text: str) -> str:
@@ -34,9 +50,10 @@ def render_startup(root: Path) -> dict:
     messages = []
     contexts = []
     for name, header in policies:
+        skill = root / "skills" / name / "SKILL.md"
         try:
-            body = skill_body(
-                (root / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+            body = resolve_paths(
+                skill_body(skill.read_text(encoding="utf-8")), skill.parent
             )
         except Exception as error:
             messages.append(

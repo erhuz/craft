@@ -46,10 +46,19 @@ class CraftPromptRouterTest(unittest.TestCase):
             context,
             "CRAFT PONYTAIL — default: full; retain any user-selected "
             "mode or suspension.\n\n"
-            + ponytail.split("---", 2)[-1].strip()
+            + session_start.resolve_paths(
+                ponytail.split("---", 2)[-1].strip(), root / "skills" / "ponytail"
+            )
             + "\n\nCRAFT CLARIFY\n\n"
-            + clarify.split("---", 2)[-1].strip(),
+            + session_start.resolve_paths(
+                clarify.split("---", 2)[-1].strip(), root / "skills" / "clarify"
+            ),
         )
+        self.assertNotIn("`../", context)
+        self.assertIn(f"`{root / 'skills' / '_shared' / 'entry.md'}`", context)
+        self.assertIn(f"`{root / 'skills' / 'clarify' / 'examples.md'}`", context)
+        # Leave room for longer installed-cache paths than this checkout's.
+        self.assertLessEqual(len(context) + 300, session_start.CONTEXT_LIMIT)
         self.assertEqual(len(startup), 1)
         self.assertEqual(startup[0]["matcher"], "startup|resume|clear|compact")
         self.assertEqual(len(startup[0]["hooks"]), 1)

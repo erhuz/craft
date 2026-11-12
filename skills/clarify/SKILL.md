@@ -12,144 +12,61 @@ description: >
 
 Before applying this guidance, read and apply `../_shared/entry.md`.
 
-Make the meaning explicit before naming the technical concept. Apply this
-guidance to all technical writing within the current request, including
-explanations, reports, plans, specifications, documentation, and comments.
-Also apply the interface-copy guidance below when drafting or revising UI text.
+Make the meaning explicit before naming the technical concept. Apply to all
+technical writing in the current request: explanations, reports, plans,
+specifications, documentation, and comments.
 
-## Keep interface text useful
+## Interface text
 
-Avoid over-explanatory microcopy: labels, hints, tooltips, and messages that
-explain obvious actions or repeat what nearby text already makes clear. Keep
-text that helps the user choose, act, recover from an error, or understand a
-consequence. If removing a sentence loses none of that information, omit it.
-
-Use direct labels and add help only where the interface leaves a meaningful
-question unanswered. Under **Email address**, omit "Enter your email address
-into this field." Keep "We'll send your receipt here" when that is accurate
-and the purpose is otherwise unclear.
-
-Name the state directly: "Aktivt orderfönster", not "Grön (aktivt fönster)".
-Keep color as a visual cue. Use parentheses for necessary distinctions or
-units, not to explain a vague label.
-
-Preserve necessary instructions, accessibility information, constraints, and
-warnings. Judge usefulness in context, not by length alone. In interface text,
-use plain wording without parenthetical technical phrases unless the user
-needs those terms to act; the explanation-first rules below apply to technical
-prose.
+Omit microcopy that explains obvious actions or repeats nearby text. Keep text
+that helps the user choose, act, recover, or understand a consequence, plus
+necessary instructions, accessibility information, constraints, and warnings.
+Use direct labels; name states directly and keep color as a visual cue. Use
+parentheses only for necessary distinctions or units, and no parenthetical
+technical phrases unless the user needs them to act.
 
 ## Notice missing meaning
 
-Read the surrounding text before choosing a replacement. Flag words and
-sentences that hide who acts, what happens, which conditions apply, or what
-result follows. Terms such as "reconciliation," "persisted," "work admission,"
-and "fields have no consumers" are candidates, not a replacement dictionary.
-Ordinary uses of "binding" or "fields" may already be clear.
-
-Interpret every occurrence in its own sentence and surrounding context. The
-same word can describe different actions, actors, or constraints elsewhere;
-do not reuse an earlier explanation merely because the wording matches.
-Reuse an explanation only when the meaning also matches. Check supplied
-examples against the current context before adapting them.
-
-Use supplied context to establish the meaning; consult relevant available
-source evidence where needed. If several interpretations remain possible,
-identify the missing information instead of picking one. "Robust,"
+Flag words and sentences that hide who acts, what happens, under which
+conditions, or with what result. Interpret each occurrence in its own context;
+reuse an explanation only when the meaning matches, not merely the wording.
+Use supplied context and available source evidence. If several readings remain,
+name the missing information instead of picking one. Words like "robust,"
 "efficient," and "safe" can hide missing criteria; a longer synonym does not
-resolve that gap. Describe what is known and flag what remains unclear without
-inventing actors or guarantees.
+fix that. Never invent actors or guarantees.
 
 ## Explain first
 
-- Replace opaque wording with its specific meaning: `explanation (original
-  technical phrase)`. Keep the original phrase verbatim.
-- Rewrite an entire sentence when word substitutions would leave the action,
-  conditions, or consequence unclear. Retain only its key technical phrases
-  beside their explanations, never the whole original sentence.
-- Retain each original phrase once per distinct meaning in each independently
-  readable section or audit finding. Use the plain explanation alone afterward
-  for that meaning. If the meaning changes within a section, explain and
-  annotate the new meaning too. Unsectioned text counts as one section; use
-  consistent wording only where the meaning matches.
-- Convert suitable `term (explanation)` wording to explanation-first form after
-  checking that the explanation fits the context. Do not reverse parentheses
-  mechanically or alter protected content.
-- Leave already clarified text stable. Count existing explanation-first pairs
-  toward the section's first use; add no nested or repeated annotations on a
-  second pass. Leave clear prose alone and never invent jargon to annotate it.
+- Replace opaque wording with `explanation (original technical phrase)`,
+  keeping the phrase verbatim.
+- Rewrite the whole sentence when substitutions leave action, conditions, or
+  consequence unclear; keep only its key technical phrases.
+- Keep each original phrase once per distinct meaning per independently
+  readable section or audit finding (unsectioned text is one section); use the
+  plain explanation afterward.
+- Convert suitable `term (explanation)` to explanation-first after checking the
+  fit; never reverse parentheses mechanically.
+- Leave clarified or already clear text stable: no repeated or nested
+  annotations on a second pass, and no invented jargon.
 
 ## Preserve exact meaning and protected content
 
-- Keep names, abbreviations, and notation unchanged even when unexplained:
-  Postgres, Redis, Go, Golang, PHP, API, CLI, HA, DCS, and symbols such as `→`
-  and `≠`. Do not expand them, replace them, or add definitions for them.
-  Clarify surrounding prose when needed while keeping these tokens intact.
-- Preserve code, identifiers, commands, paths, URLs, versions, numbers, units,
-  error strings, and quoted evidence verbatim. Edit explanatory prose around
-  them; do not rename an identifier because its name resembles jargon.
+- Keep names, abbreviations, and notation unchanged and undefined: Postgres,
+  Redis, Go, Golang, PHP, API, CLI, HA, DCS, `→`, `≠`.
+- Keep code, identifiers, commands, paths, URLs, versions, numbers, units,
+  error strings, and quoted evidence verbatim; never rename an identifier.
 - Preserve responsibility, negation, uncertainty, conditions, exceptions,
-  ordering, and evidence strength. A possible failure must remain possible;
-  an inferred consequence must not become an observed incident. Never replace
-  a broad claim with a narrower guarantee unsupported by context.
+  ordering, and evidence strength. Possible stays possible; inferred never
+  becomes observed; no narrower guarantee than the context supports.
 
-## Examples
-
-These examples use the stated context. They are not universal definitions.
-
-### Words and short phrases
-
-| Context | Before | After |
-| --- | --- | --- |
-| The configuration has been saved. | persisted configuration | saved settings (persisted configuration) |
-| The manager applies saved settings to running Postgres servers. | reconciliation | applying saved settings to running Postgres servers (reconciliation) |
-| A report compares two stock lists to find mismatches. | reconciliation | comparing two stock lists to find mismatches (reconciliation) |
-| The manager decides whether another operation may start. | work admission | deciding whether another operation may start (work admission) |
-| Different parts report conflicting states for the same servers. | divergent system truth | conflicting reports about the same servers (divergent system truth) |
-| The sentence concerns a physical book. | Check the book's binding before shipping it. | Check the book's binding before shipping it. |
-
-The two uses of "reconciliation" need different explanations. Neither
-explanation can be carried over to the other context solely because the word
-is the same.
-
-### Whole sentences
-
-**Context:** The manager saves settings, but no code uses them to configure
-Prometheus.
-
-Before: The fields have no consumers.
-
-After: The manager saves these settings, but no code uses them to configure
-Prometheus (fields have no consumers).
-
-**Context:** Applying saved settings can finish successfully while DCS still
-uses earlier rules.
-
-Before: Reconciliation can succeed while effective policy remains stale.
-
-After: Applying saved settings (Reconciliation) can succeed while the rules
-DCS currently uses (effective policy) still reflect earlier settings.
-
-**Context:** No failure conditions, workloads, or performance criteria are given.
-
-Before: The API is robust and handles load efficiently.
-
-Response: The claim does not specify which failures the API handles, which
-workloads it supports, or how performance is measured. Its meaning remains
-unclear.
-
-**Protected content:** Leave `Postgres, Redis, Go, Golang, PHP, API, CLI, HA,
-DCS; a → b; a ≠ b` unchanged. Their presence alone calls for no explanation.
+For contextual examples, read `examples.md` beside this skill before a targeted
+rewrite or when unsure.
 
 ## Stay within the request
 
-Return the requested text or artifact in its existing structure, with unresolved
-meanings reported in that format. Include a jargon inventory only when
-requested. A review stays a review, and file edits stay within the authorized
-target. A bare invocation with no clear target asks for the text or artifact to
-clarify; it never starts a repository-wide rewrite.
-
-Respect document formatting and Craft phase rules. Clarify changes wording,
-not requirements, ledger identities, task statuses, or edit authority. Other
-skills still own their workflows and output structures. Loading this policy
-adds no implementation, audit, or external-action authorization.
+Return the text in its existing structure, reporting unresolved meanings there.
+Add a jargon inventory only on request. A review stays a review; edits stay in
+the authorized target. A bare invocation with no target asks for the text and
+never starts a repository-wide rewrite. Clarify changes wording only, not
+requirements, ledger identities, task statuses, edit authority, or other
+skills' output structures, and grants no other authorization.
