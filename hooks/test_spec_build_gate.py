@@ -55,7 +55,7 @@ class CraftPromptRouterTest(unittest.TestCase):
         self.assertEqual(len(startup[0]["hooks"]), 1)
         hook = startup[0]["hooks"][0]
         self.assertIn("/hooks/session_start.py", hook["command"])
-        self.assertEqual(hook["additionalContextLimit"], 12000)
+        self.assertEqual(hook["additionalContextLimit"], 13000)
         self.assertLessEqual(len(context), hook["additionalContextLimit"])
 
     def test_startup_keeps_the_other_policy_when_one_cannot_load(self) -> None:

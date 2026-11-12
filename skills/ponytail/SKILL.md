@@ -47,11 +47,17 @@ gets a brief acknowledgement; it does not start implementation.
 
 ## Use the ladder
 
-Understand the task and trace the affected flow first. In `full` and `ultra`,
-stop at the first rung that holds. In `lite`, use it to identify alternatives:
+Understand the task and trace the affected flow first. Before editing, identify
+every place the change must reach: callers, tests, fixtures, config, and exports.
+Check what could break for users, including data loss or exposure and callers
+that stop working. Include required updates to those affected files in the task's
+scope; this does not authorize extra features.
+
+In `full` and `ultra`, stop at the first rung that holds. In `lite`, use it to
+identify alternatives:
 
 1. Skip work with no current need.
-2. Reuse what already exists in the codebase.
+2. Reuse what already exists in the codebase, following its established usage.
 3. Use standard library support.
 4. Use a native platform feature.
 5. Use an already-installed dependency.
@@ -73,6 +79,8 @@ common ownership point over repeated symptom guards.
 
 - Add no speculative abstraction, dependency, configurability, or scaffolding.
 - Prefer deletion over addition and boring code over clever code.
+- Preserve the codebase's existing layers, interfaces, and conventions. Prefer
+  its own components over native alternatives when they serve the same need.
 - Touch the fewest files that correctly own the behavior.
 - Mark a deliberate simplification only when it has a real ceiling. Use a
   `ponytail:` comment naming ceiling and upgrade trigger.
